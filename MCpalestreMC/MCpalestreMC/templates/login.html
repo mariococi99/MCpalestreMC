@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block content %}
+
+
+
+
+
+<form class="form form-horizontal" action="" method="post">
+    {% for field, errors in form.errors.items() %}
+    {{ ', '.join(errors) }}
+    {% endfor %}
+
+    {{wtf.form_field(form.utente, form_type="horizontal")}}
+    {{wtf.form_field(form.password, form_type="horizontal")}}
+    
+    {{wtf.form_field(form.submit, form_type="horizontal", button_map={'add': 'success'})}}
+</form>
+{% endblock %}
