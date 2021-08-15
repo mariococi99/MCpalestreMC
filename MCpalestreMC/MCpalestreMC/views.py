@@ -26,12 +26,12 @@ conn.close()
 today = datetime.today().strftime('%Y-%m-%d')
 
 class User (UserMixin):
-    def __init__ (self, cf, nome, cognome, email, utente, pwd, ruolo):
+    def __init__ (self, cf, nome, cognome, email, numero, pwd, ruolo):
         self.cf = cf
         self.nome = nome
         self.cognome = cognome
         self.email = email
-        self.utente = utente
+        self.numero = numero
         self.pwd = pwd
         self.ruolo = ruolo
 
@@ -53,7 +53,7 @@ def load_user (user_cf):
     rs = conn.execute(s, utente=user_cf)
     user = rs.fetchone()
     conn.close()
-    return User(user.CF, user.Nome, user.Cognome, user.Email, user.Password, user.Ruolo)
+    return User(user.CF, user.Nome, user.Cognome, user.Email, user.Numero, user.Password, user.Ruolo)
 
 @app.route('/', methods = ['GET', 'POST'])
 def home():
@@ -100,9 +100,9 @@ def login():
                 flash("Errore durante l'accesso d", "error")
                 return redirect(url_for("login"))
             else:
-                user = User(u['Cf'], u['Email'], u['Nome'], u['Cognome'], u["Numero telefonico"], u['Password'], u['Ruolo'])
+                user = User(u['Cf'], u['Nome'], u['Cognome'], u['Email'], u["Numero"], u['Password'], u['Ruolo'])
                 login_user(user)
-                engine = create_engine("mysql://" + utente + ":" + password + "@localhost/mcpalestremc")
+                engine = create_engine("mysql://" + cf + ":" + password + "@localhost/mcpalestremc")
                 return redirect(url_for('area_riservata'))
         except:
             flash("Errore durante l'accesso", 'error')
@@ -133,7 +133,7 @@ def registrazione():
             email = result['email']
             nome = result['nome']
             cognome = result['cognome']
-            numero = result['telefono']
+            numero = result['numero']
             password = result['password']
             conn = engine.connect()
             conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
@@ -148,8 +148,8 @@ def registrazione():
                 flash('Errore: inserire un codice fiscale diverso','error')
                 return redirect(url_for('registrazione'))
 
-            s = text("INSERT INTO users VALUES(:cf, :email, :nome, :cognome, :numero, :password, 'Utente')")
-            rs = conn.execute (s, cf = cf, email = email, nome = nome, cognome = cognome, numero = numero, password = password)
+            s = text("INSERT INTO users VALUES(:cf, :nome, :cognome, :email, :numero, :password, 'FALSE', 'Cliente', 1)")
+            rs = conn.execute (s, cf = cf, nome = nome, cognome = cognome, email = email, numero = numero, password = password)
 
             s=text("create user :codice@'localhost' identified with mysql_native_password by :password")
             rs = conn.execute (s, codice = cf, password = password)
@@ -160,12 +160,12 @@ def registrazione():
             rs = conn.execute ("FLUSH PRIVILEGES") 
             conn.execute("COMMIT")
             conn.close() 
-            return redirect(url_for('loginPagina')) 
+            return redirect(url_for('login')) 
         except:
             conn.execute("ROLLBACK")
             conn.close()
             flash("Errore durante la registrazione", 'error')
-            return redirect(url_for('registrazionePagina'))
+            return redirect(url_for('registrazione'))
     return render_template(
         "registrazione.html",
         logged = current_user.is_authenticated,

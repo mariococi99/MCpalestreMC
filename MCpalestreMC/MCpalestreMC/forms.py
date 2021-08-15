@@ -12,6 +12,6 @@ class RegistrationForm(FlaskForm):
     email = StringField('Email')
     nome = StringField('Nome')
     cognome = StringField('Cognome')
-    telefono = StringField('Numero telefonico')
+    numero = StringField('Numero telefonico')
     password = StringField('Password')
     registrationSubmit = SubmitField('Invia')
