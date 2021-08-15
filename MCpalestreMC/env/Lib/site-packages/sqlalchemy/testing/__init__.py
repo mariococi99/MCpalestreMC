@@ -3,7 +3,7 @@
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
-# the MIT License: http://www.opensource.org/licenses/mit-license.php
+# the MIT License: https://www.opensource.org/licenses/mit-license.php
 
 
 from . import config
@@ -74,6 +74,7 @@ from .util import rowset
 from .util import run_as_contextmanager
 from .util import teardown_events
 from .warnings import assert_warnings
+from .warnings import warn_test_suite
 
 
 def against(*queries):

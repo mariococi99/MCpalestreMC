@@ -3,7 +3,7 @@
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
-# the MIT License: http://www.opensource.org/licenses/mit-license.php
+# the MIT License: https://www.opensource.org/licenses/mit-license.php
 
 import re
 
@@ -416,7 +416,7 @@ class MySQLTableDefinitionParser(object):
             r"(?: +KEY_BLOCK_SIZE *[ =]? *(?P<keyblock>\S+))?"
             r"(?: +WITH PARSER +(?P<parser>\S+))?"
             r"(?: +COMMENT +(?P<comment>(\x27\x27|\x27([^\x27])*?\x27)+))?"
-            r"(?: +/\*(?P<version_sql>.+)\*/ +)?"
+            r"(?: +/\*(?P<version_sql>.+)\*/ *)?"
             r",?$" % quotes
         )
 

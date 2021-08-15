@@ -46,6 +46,9 @@
   <ItemGroup>
     <Content Include="MCpalestreMC\Database\Tabelle.sql" />
     <Content Include="MCpalestreMC\templates\login.html" />
+    <Content Include="MCpalestreMC\templates\registrazione.html">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="requirements.txt" />
     <Content Include="MCpalestreMC\static\content\bootstrap.css" />
     <Content Include="MCpalestreMC\static\content\bootstrap.min.css" />
