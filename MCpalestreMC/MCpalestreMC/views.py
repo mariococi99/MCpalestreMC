@@ -26,40 +26,47 @@ conn.close()
 today = datetime.today().strftime('%Y-%m-%d')
 
 class User (UserMixin):
-    def __init__ (self, cf, nome, cognome, email, numero, pwd, ruolo):
+    def __init__ (self, cf, nome, cognome, email, numero, pwd, tampone, tipo, palestra):
         self.cf = cf
         self.nome = nome
         self.cognome = cognome
         self.email = email
         self.numero = numero
         self.pwd = pwd
-        self.ruolo = ruolo
+        self.tampone = tampone
+        self.tipo = tipo
+        self.palestra = palestra
 
     def get_ruolo(self):
         return self.ruolo
 
     def get_id(self):
-        return self.id
+        return self.cf
 
 def is_logged():
-    return current_user.is_authenticated
+    if current_user.is_authenticated:
+        return 'true'
+    return 'false'
+
 """
 Funzione che serve per il corretto funzionamento dell'autenticazione.
 """
 @login_manager.user_loader
 def load_user (user_cf):
     conn = engine.connect()
-    s = text("SELECT * FROM utenti WHERE CF =:utente")
-    rs = conn.execute(s, utente=user_cf)
+    s = text("SELECT * FROM utenti u WHERE u.CF =:utente")
+    rs = conn.execute(s, utente = user_cf)
     user = rs.fetchone()
     conn.close()
-    return User(user.CF, user.Nome, user.Cognome, user.Email, user.Numero, user.Password, user.Ruolo)
+    return User(user.cf, user.nome, user.cognome, user.email, user.numero, user.password, user.tampone, user.tipo, user.idpalestra)
 
 @app.route('/', methods = ['GET', 'POST'])
+@app.route('/home', methods = ['GET', 'POST'])
 def home():
     """Renders the home page."""
     return render_template(
         'index.html',
+        is_logged = is_logged(),
         title ='Home Page',
         year = datetime.now().year,
     )
@@ -69,6 +76,7 @@ def contact():
     """Renders the contact page."""
     return render_template(
         'contact.html',
+        is_logged = is_logged(),
         title = 'Contact',
         year = datetime.now().year,
         message = 'Your contact page.'
@@ -79,6 +87,7 @@ def about():
     """Renders the about page."""
     return render_template(
         'about.html',
+        is_logged = is_logged(),
         title='About',
         year=datetime.now().year,
         message='Your application description page.'
@@ -86,30 +95,34 @@ def about():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    global engine
     form = LoginForm()
     if form.is_submitted():
         result = request.form
         try:
             cf = result['cf']
             password = result['password']
+
             conn = engine.connect()
-            t = text('SELECT * FROM users u WHERE u.Cf =:cf AND u.Password =: password')
-            u = conn.execute(t, cf = cf, password = password).fetch_one()
+
+            t = text('SELECT * FROM utenti u WHERE u.CF =:cf AND u.Password =:password')
+            f = conn.execute(t, cf = cf, password = password).fetchone()
             conn.close()
-            if u:
-                flash("Errore durante l'accesso d", "error")
-                return redirect(url_for("login"))
-            else:
-                user = User(u['Cf'], u['Nome'], u['Cognome'], u['Email'], u["Numero"], u['Password'], u['Ruolo'])
+            if f:
+                user = User(f['cf'], f['nome'], f['cognome'], f['email'], f["numero"], f['password'], f['tampone'], f['tipo'], f['idpalestra'])
                 login_user(user)
                 engine = create_engine("mysql://" + cf + ":" + password + "@localhost/mcpalestremc")
-                return redirect(url_for('area_riservata'))
+                return redirect(url_for('home'))
+            else:
+                flash("Errore durante l'accesso: hai sbagliato codice fiscale o password", "error")
+                return redirect(url_for("login"))
         except:
+            conn.close()
             flash("Errore durante l'accesso", 'error')
             return redirect(url_for('login'))
     return render_template(
         "login.html",
-        logged = current_user.is_authenticated,
+        is_logged = is_logged(),
         title = 'Login',
         year=datetime.now().year,
         form=form
@@ -130,34 +143,36 @@ def registrazione():
         result = request.form
         try:
             cf = result['cf']
-            email = result['email']
             nome = result['nome']
             cognome = result['cognome']
+            email = result['email']
             numero = result['numero']
             password = result['password']
+
             conn = engine.connect()
+
             conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
             conn.execute("START TRANSACTION")
             
-            s = text("SELECT u.CF FROM users u WHERE u.CF =:cf") 
-            id = conn.execute (s, cf = cf).fetchone()
-
+            s = text("SELECT u.CF FROM utenti u WHERE u.CF =:cf")
+            id = conn.execute(s, cf = cf).fetchone()
+            
             if id:
                 conn.execute("COMMIT")
                 conn.close()
-                flash('Errore: inserire un codice fiscale diverso','error')
+                flash('Errore: codice fiscale già registrato','error')
                 return redirect(url_for('registrazione'))
 
-            s = text("INSERT INTO users VALUES(:cf, :nome, :cognome, :email, :numero, :password, 'FALSE', 'Cliente', 1)")
+            s = text("INSERT INTO utenti VALUES(:cf, :nome, :cognome, :email, :numero, :password, 'Negativo', 'Cliente', '1')")
             rs = conn.execute (s, cf = cf, nome = nome, cognome = cognome, email = email, numero = numero, password = password)
-
-            s=text("create user :codice@'localhost' identified with mysql_native_password by :password")
+            
+            s = text("create user :codice@'localhost' identified with mysql_native_password by :password")
             rs = conn.execute (s, codice = cf, password = password)
 
-            s=text("GRANT Cliente to :codice@'localhost'") 
-            rs = conn.execute (s, codice = cf)
+            s = text("GRANT Cliente to :codice@'localhost'")
+            rs = conn.execute(s, codice = cf)
 
-            rs = conn.execute ("FLUSH PRIVILEGES") 
+            rs = conn.execute("FLUSH PRIVILEGES")
             conn.execute("COMMIT")
             conn.close() 
             return redirect(url_for('login')) 
@@ -168,8 +183,13 @@ def registrazione():
             return redirect(url_for('registrazione'))
     return render_template(
         "registrazione.html",
-        logged = current_user.is_authenticated,
+        is_logged = is_logged(),
         title = 'Registrazione',
         year=datetime.now().year,
         form=form
         )
+
+@app.route('/area_riservata', methods=['GET', 'POST'])
+@login_required
+def area_riservata():
+    return redirect(url_for('about')) 

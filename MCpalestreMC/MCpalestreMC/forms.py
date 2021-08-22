@@ -3,15 +3,15 @@ from wtforms import *
 from wtforms.fields.html5 import EmailField
 
 class LoginForm(FlaskForm):
-    utente = StringField('Nome utente')
+    cf = StringField('Codice fiscale')
     password = PasswordField('Password')
     loginSubmit = SubmitField('Invia')
 
 class RegistrationForm(FlaskForm):
     cf = StringField('Codice fiscale')
-    email = StringField('Email')
     nome = StringField('Nome')
     cognome = StringField('Cognome')
+    email = StringField('Email')
     numero = StringField('Numero telefonico')
-    password = StringField('Password')
+    password = PasswordField('Password')
     registrationSubmit = SubmitField('Invia')

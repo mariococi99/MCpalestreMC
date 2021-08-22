@@ -12,5 +12,5 @@ create user 'gestore'@'localhost' identified with mysql_native_password by 'gest
 CREATE ROLE Istruttore;
 CREATE ROLE Gestore;
 
-GRANT Istruttore to 'istruttore'@'localhost';utenti
+GRANT Istruttore to 'istruttore'@'localhost';
 GRANT Gestore to 'gestore'@'localhost';
