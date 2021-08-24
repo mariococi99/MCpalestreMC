@@ -11,7 +11,13 @@ class RegistrationForm(FlaskForm):
     cf = StringField('Codice fiscale')
     nome = StringField('Nome')
     cognome = StringField('Cognome')
-    email = StringField('Email')
+    email = EmailField('E-mail')
     numero = StringField('Numero telefonico')
     password = PasswordField('Password')
     registrationSubmit = SubmitField('Invia')
+
+class ProfileModificationForm(FlaskForm):
+    email = EmailField('E-mail')
+    numero = StringField('Numero telefonico')
+    idPalestra = StringField('Idpalestra')
+    profileModificationSubmit = SubmitField('Invia')

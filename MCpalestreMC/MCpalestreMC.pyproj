@@ -45,7 +45,15 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="MCpalestreMC\Database\Tabelle.sql" />
+    <Content Include="MCpalestreMC\templates\abbonamenti.html" />
+    <Content Include="MCpalestreMC\templates\area_cliente.html" />
+    <Content Include="MCpalestreMC\templates\area_gestore.html" />
+    <Content Include="MCpalestreMC\templates\area_istruttore.html" />
+    <Content Include="MCpalestreMC\templates\corsi.html" />
+    <Content Include="MCpalestreMC\templates\dettagli_corso.html" />
     <Content Include="MCpalestreMC\templates\login.html" />
+    <Content Include="MCpalestreMC\templates\modifica_profilo.html" />
+    <Content Include="MCpalestreMC\templates\palestre.html" />
     <Content Include="MCpalestreMC\templates\registrazione.html">
       <SubType>Code</SubType>
     </Content>

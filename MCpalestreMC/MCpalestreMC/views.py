@@ -6,7 +6,7 @@ from datetime import datetime
 from flask import render_template, url_for, request, flash, session, redirect
 from flask_bootstrap import Bootstrap
 from MCpalestreMC import app
-from MCpalestreMC.forms import LoginForm, RegistrationForm
+from MCpalestreMC.forms import LoginForm, RegistrationForm, ProfileModificationForm
 import sqlalchemy
 from sqlalchemy import *
 import flask_login
@@ -37,8 +37,8 @@ class User (UserMixin):
         self.tipo = tipo
         self.palestra = palestra
 
-    def get_ruolo(self):
-        return self.ruolo
+    def get_tipo(self):
+        return self.tipo
 
     def get_id(self):
         return self.cf
@@ -67,7 +67,7 @@ def home():
     return render_template(
         'index.html',
         is_logged = is_logged(),
-        title ='Home Page',
+        title ='Home page',
         year = datetime.now().year,
     )
 
@@ -77,7 +77,7 @@ def contact():
     return render_template(
         'contact.html',
         is_logged = is_logged(),
-        title = 'Contact',
+        title = 'Contatti',
         year = datetime.now().year,
         message = 'Your contact page.'
     )
@@ -104,7 +104,6 @@ def login():
             password = result['password']
 
             conn = engine.connect()
-
             t = text('SELECT * FROM utenti u WHERE u.CF =:cf AND u.Password =:password')
             f = conn.execute(t, cf = cf, password = password).fetchone()
             conn.close()
@@ -112,7 +111,7 @@ def login():
                 user = User(f['cf'], f['nome'], f['cognome'], f['email'], f["numero"], f['password'], f['tampone'], f['tipo'], f['idpalestra'])
                 login_user(user)
                 engine = create_engine("mysql://" + cf + ":" + password + "@localhost/mcpalestremc")
-                return redirect(url_for('home'))
+                return redirect(url_for('area_riservata'))
             else:
                 flash("Errore durante l'accesso: hai sbagliato codice fiscale o password", "error")
                 return redirect(url_for("login"))
@@ -192,4 +191,129 @@ def registrazione():
 @app.route('/area_riservata', methods=['GET', 'POST'])
 @login_required
 def area_riservata():
-    return redirect(url_for('about')) 
+    tipo = current_user.get_tipo()
+    if(tipo == 'Gestore'):
+        return redirect(url_for('area_gestore'))
+    elif(tipo == 'Istruttore'):
+        return redirect(url_for('area_istruttore'))
+    elif(tipo == 'Cliente'):
+        return redirect(url_for('area_cliente'))
+    else:
+       return redirect(url_for('home'))
+
+@app.route('/palestre', methods = ['GET'])
+def palestre():
+    """Renders the about page."""
+    return render_template(
+        'palestre.html',
+        is_logged = is_logged(),
+        title='Palestre',
+        year=datetime.now().year,
+        message='Your application description page.'
+    )
+
+@app.route('/corsi', methods = ['GET'])
+def corsi():
+    """Renders the about page."""
+    return render_template(
+        'corsi.html',
+        is_logged = is_logged(),
+        title='Corsi',
+        year=datetime.now().year,
+        message='Your application description page.'
+    )
+
+@app.route('/abbonamenti', methods = ['GET'])
+def abbonamenti():
+    """Renders the about page."""
+    return render_template(
+        'abbonamenti.html',
+        is_logged = is_logged(),
+        title='Abbonamenti',
+        year=datetime.now().year,
+        message='Your application description page.'
+    )
+
+@app.route('/area_gestore', methods = ['GET'])
+def area_gestore():
+    """Renders the about page."""
+    return render_template(
+        'area_gestore.html',
+        is_logged = is_logged(),
+        title='Area riservata | Gestore',
+        year=datetime.now().year,
+        message='Your application description page.'
+    )
+
+@app.route('/area_istruttore', methods = ['GET'])
+def area_istruttore():
+    """Renders the about page."""
+    return render_template(
+        'area_istruttore.html',
+        is_logged = is_logged(),
+        title='Area riservata | Istruttore',
+        year=datetime.now().year,
+        message='Your application description page.'
+    )
+
+@app.route('/area_cliente', methods = ['GET'])
+def area_cliente():
+    if (current_user.get_tipo() == 'Cliente'): #Cliente
+        conn = engine.connect() #connessione aperta
+        s=text("SELECT * FROM corsi c NATURAL JOIN iscrizioni i WHERE i.CF =:cf")
+        corsi = conn.execute(s, cf = current_user.get_id())
+        conn.close() #connessione chiusa
+        return render_template(
+            'area_cliente.html',
+            is_logged = is_logged(),
+            title='Area riservata | Cliente',
+            year=datetime.now().year,
+            message='Your application description page.',
+            corsi = corsi
+        )
+    else:
+        return redirect(url_for('home')) #rimando alla home page
+
+@app.route ('/modifica_profilo', methods=['GET', 'POST'])
+@login_required
+def modifica_profilo():
+    form = ProfileModificationForm()
+    if form.is_submitted():
+        result = request.form
+        conn = engine.connect()
+        conn.execute("SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED")
+        conn.execute("START TRANSACTION")
+        try:
+            email = result['email']
+            numero = result['numero']
+            idpalestra = result['idPalestra']
+            s = text("UPDATE utenti SET Email =:email, Numero =:numero, Idpalestra=:idpalestra WHERE CF =:cf")
+            conn.execute(s, email = email, numero = numero, idpalestra = idpalestra, cf = current_user.get_id())
+            conn.execute("COMMIT")
+            conn.close()
+            return redirect(url_for('area_riservata'))
+        except:
+            conn.execute("ROLLBACK")
+            conn.close()
+            flash('Errore: modifica non riuscita, riprovare','error')
+            return redirect(url_for('modifica_profilo'))
+    return render_template(
+        "modifica_profilo.html",
+        is_logged = is_logged(),
+        title = 'Modifica profilo cliente',
+        year = datetime.now().year,
+        message = 'Il cliente desidera modificarsi',
+        form = form
+    )
+
+@app.route('/dettagli_corso', methods = ['GET', 'POST'])
+@login_required
+def dettagli_corso():
+    """Renders the about page."""
+    return render_template(
+        'dettagli_corso.html',
+        is_logged = is_logged(),
+        title='Dettagli corso',
+        year=datetime.now().year,
+        message='Your application description page.'
+    )

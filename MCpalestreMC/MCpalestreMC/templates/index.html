@@ -5,28 +5,27 @@
 <div class="jumbotron">
     <h1>MCpalestreMC</h1>
     <p class="lead">Dpcm dopo dpcm siamo ancora aperti!</p>
-    <p><a href="http://flask.pocoo.org/" class="btn btn-primary btn-large">Learn more &raquo;</a></p>
 </div>
 
 <div class="row">
     <div class="col-md-4">
-        <h2>Getting started</h2>
+        <h2>Palestre</h2>
         <p>
             Flask gives you a powerful, patterns-based way to build dynamic websites that
             enables a clean separation of concerns and gives you full control over markup
             for enjoyable, agile development.
         </p>
-        <p><a class="btn btn-default" href="http://flask.pocoo.org/docs/">Learn more &raquo;</a></p>
+        <p><a class="btn btn-default" href="{{ url_for('palestre') }}">Learn more &raquo;</a></p>
     </div>
     <div class="col-md-4">
-        <h2>Get more libraries</h2>
+        <h2>Corsi</h2>
         <p>The Python Package Index is a repository of software for the Python programming language.</p>
-        <p><a class="btn btn-default" href="https://pypi.python.org/pypi">Learn more &raquo;</a></p>
+        <p><a class="btn btn-default" href="{{ url_for('corsi') }}">Learn more &raquo;</a></p>
     </div>
     <div class="col-md-4">
-        <h2>Microsoft Azure</h2>
+        <h2>Abbonamenti</h2>
         <p>You can easily publish to Microsoft Azure using Visual Studio. Find out how you can host your application using a free trial today.</p>
-        <p><a class="btn btn-default" href="http://azure.microsoft.com">Learn more &raquo;</a></p>
+        <p><a class="btn btn-default" href="{{ url_for('abbonamenti') }}">Learn more &raquo;</a></p>
     </div>
 </div>
 
