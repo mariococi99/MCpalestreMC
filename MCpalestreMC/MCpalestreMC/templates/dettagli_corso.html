@@ -5,8 +5,98 @@
 <div class="jumbotron">
     <h2>Dettagli crso</h2>
     <p class="lead">Per entrare nell'area di backoffice devi registrarti.</p>
+    <p><a href="{{ url_for('dettagli_corsi') }}" id="iscriviti" class="btn btn-success btn-large">Iscriviti &raquo;</a></p>
+    <p><a href="{{ url_for('dettagli_corsi') }}" id="disiscriviti" class="btn btn-dangerous btn-large">Disiscriviti &raquo;</a></p>
+</div>
+<div class="album py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <svg class="bd-placeholder-img card-img-top" width="100%" height="50">
+                        <rect width="100%" height="100%" fill="#55595c" />
+                        <text class="testo" x="10%" y="50%" fill="#eceeef" dy=".3em">Titolo</text>
+                    </svg>
+                    <div class="card-body">
+                        <p class="card-text">{{corso['Titolo']}}</p> <!-- Data e orario di partenza -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="btn-group"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <svg class="bd-placeholder-img card-img-top" width="100%" height="50">
+                        <rect width="100%" height="100%" fill="#55595c" />
+                        <text class="testo" x="10%" y="50%" fill="#eceeef" dy=".3em">Istruttore</text>
+                    </svg>
+                    <div class="card-body">
+                        <p class="card-text">{{corso['Istruttore']}}</p> <!-- Data e orario di arrivo -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="btn-group"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <svg class="bd-placeholder-img card-img-top" width="100%" height="50">
+                        <rect width="100%" height="100%" fill="#55595c" />
+                        <text class="testo" x="10%" y="50%" fill="#eceeef" dy=".3em">Massimo numero di persone</text>
+                    </svg>
+                    <div class="card-body">
+                        <p class="card-text">{{corso['Personemax']}}</p> <!-- Durata del volo -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="btn-group"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <svg class="bd-placeholder-img card-img-top" width="100%" height="50">
+                        <rect width="100%" height="100%" fill="#55595c" />
+                        <text class="testo" x="10%" y="50%" fill="#eceeef" dy=".3em">Locale</text>
+                    </svg>
+                    <div class="card-body">
+                        <p class="card-text">{{corso['Idlocale']}}</p> <!-- Durata del volo -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="btn-group"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <svg class="bd-placeholder-img card-img-top" width="100%" height="50">
+                        <rect width="100%" height="100%" fill="#55595c" />
+                        <text class="testo" x="10%" y="50%" fill="#eceeef" dy=".3em">Descrizione</text>
+                    </svg>
+                    <div class="card-body">
+                        <p class="card-text">{{corso['Descrizione']}}</p> <!-- Durata del volo -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="btn-group"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
 </div>
 
+{% endblock %}
 
-
+{% block scripts %}
+<script>
+    if({{ is_subcripted }} == true){
+        $('#iscriviti').hide();
+        $('#disiscriviti').show();
+    } else{
+        $('#disiscriviti').show();
+        $('#iscriviti').hide();
+    }
+</script>
 {% endblock %}

@@ -6,6 +6,12 @@
     <h2>Area riservata</h2>
     <p class="lead">Per entrare nell'area di backoffice devi registrarti.</p>
     <p><a href="{{ url_for('modifica_profilo') }}" class="btn btn-primary btn-large">Modifica profilo utente &raquo;</a></p>
+    <p><a href="{{ url_for('altri_corsi') }}" class="btn btn-primary btn-large">Corsi a cui non sei iscritto &raquo;</a></p>
+    <form class="form-inline" method="post">
+        <p>Covid-19 </p>
+        <input id ="covid" name="covid" type="checkbox" checked data-toggle="toggle" action
+               data-on="Negativo" data-off="Positivo" data-onstyle="success" data-offstyle="danger">
+    </form>
 </div>
 
 {% for c in corsi %}
@@ -17,6 +23,7 @@
         <div class="col-md-6 ml-auto form-inline">
             <form class="form-inline" action="{{url_for('dettagli_corso')}}" method="post">
                 <input type="hidden" name="corso" value="{{c['idcorso']}}" />
+                <input type="hidden" name="is_iscritto" value="True" />
                 <input class="btn btn-outline-primary btn-lg" type="submit" name="Dettagli" value="Dettagli" />
             </form>
         </div>
@@ -24,5 +31,19 @@
 </div>
 {% endfor %}
 
+
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+    $('#covid').click(function () {
+        if ($('#covid').prop('check')) {
+            console.log('true');
+        } else {
+            console.log('false');
+        }
+    })
+</script>
 
 {% endblock %}

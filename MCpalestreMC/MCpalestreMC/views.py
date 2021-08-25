@@ -6,7 +6,7 @@ from datetime import datetime
 from flask import render_template, url_for, request, flash, session, redirect
 from flask_bootstrap import Bootstrap
 from MCpalestreMC import app
-from MCpalestreMC.forms import LoginForm, RegistrationForm, ProfileModificationForm
+from MCpalestreMC.forms import *
 import sqlalchemy
 from sqlalchemy import *
 import flask_login
@@ -235,6 +235,7 @@ def abbonamenti():
     )
 
 @app.route('/area_gestore', methods = ['GET'])
+@login_required
 def area_gestore():
     """Renders the about page."""
     return render_template(
@@ -246,8 +247,8 @@ def area_gestore():
     )
 
 @app.route('/area_istruttore', methods = ['GET'])
+@login_required
 def area_istruttore():
-    """Renders the about page."""
     return render_template(
         'area_istruttore.html',
         is_logged = is_logged(),
@@ -256,13 +257,18 @@ def area_istruttore():
         message='Your application description page.'
     )
 
-@app.route('/area_cliente', methods = ['GET'])
+@app.route('/area_cliente', methods = ['GET', 'POST'])
+@login_required
 def area_cliente():
-    if (current_user.get_tipo() == 'Cliente'): #Cliente
-        conn = engine.connect() #connessione aperta
+    if (current_user.get_tipo() == 'Cliente'):
+        if request.method == 'POST':
+            result = request.form
+            tampone = result['tampone']
+            print(tampone)
+        conn = engine.connect()
         s=text("SELECT * FROM corsi c NATURAL JOIN iscrizioni i WHERE i.CF =:cf")
         corsi = conn.execute(s, cf = current_user.get_id())
-        conn.close() #connessione chiusa
+        conn.close()
         return render_template(
             'area_cliente.html',
             is_logged = is_logged(),
@@ -272,7 +278,7 @@ def area_cliente():
             corsi = corsi
         )
     else:
-        return redirect(url_for('home')) #rimando alla home page
+        return redirect(url_for('home'))
 
 @app.route ('/modifica_profilo', methods=['GET', 'POST'])
 @login_required
@@ -309,11 +315,80 @@ def modifica_profilo():
 @app.route('/dettagli_corso', methods = ['GET', 'POST'])
 @login_required
 def dettagli_corso():
-    """Renders the about page."""
+    if request.method == 'GET':
+        result = request.form
+        if result['is_iscritto'] == 'True':
+            is_subscripted = 'true'
+        else:
+            is_subscripted = 'false'
     return render_template(
         'dettagli_corso.html',
         is_logged = is_logged(),
         title='Dettagli corso',
         year=datetime.now().year,
-        message='Your application description page.'
+        message='Your application description page.',
+        is_subscripted = is_subscripted
     )
+
+
+@app.route('/altri_corsi', methods = ['GET'])
+@login_required
+def altri_corsi():
+    if (current_user.get_tipo() == 'Cliente'):
+        try:
+            conn = engine.connect() #connessione aperta
+            s = text("SELECT * FROM corsi c WHERE :cf NOT IN (SELECT i.CF FROM iscrizioni i WHERE i.idcorso = c.idcorso)")
+            corsi = conn.execute(s, cf = current_user.get_id())
+            conn.close() #connessione chiusa
+            return render_template(
+                'altri_corsi.html',
+                is_logged = is_logged(),
+                title = 'Altri corsi',
+                year = datetime.now().year,
+                message = 'Your application description page.',
+                corsi = corsi
+            )
+        except:
+            conn.close()
+            flash('Non è stato possibile trovare altri corsi', 'error')
+            return redirect(url_for('area_riservata'))
+    else:
+        return redirect(url_for('home')) #rimando alla home page
+
+@app.route('/crea_corso', methods = ['GET', 'POST'])
+@login_required
+def crea_corso():
+    if (current_user.get_tipo() == 'Istruttore' or current_user.get_tipo() == 'Gestore'):
+        try:
+            conn = engine.connect()
+            s = text("SELECT idlocale FROM locali ")
+            idlocali = conn.execute(s)
+            locali = []
+            for l in idlocali:
+                locali.append(l[0])
+            form = CourseCreationForm(locali)
+            if form.is_submitted():
+                result = request.form
+                titolo = result['titolo']
+                descrizione = result['descrizione']
+                idlocale = result['idLocale']
+                s = text("INSERT INTO corsi (titolo, descrizione, idlocale, cf) VALUES(:titolo, :descrizione, :idlocale, :cf)")
+                conn.execute(s, titolo = titolo, descrizione = descrizione, idlocale = idlocale, cf = current_user.get_id())
+                conn.close()
+                flash('Nuovo corso aggiunto!')
+                return redirect(url_for('area_riservata'))
+            conn.close()    
+            return render_template(
+                'crea_corso.html',
+                is_logged = is_logged(),
+                title = 'Crea corso',
+                year = datetime.now().year,
+                message = 'Your application description page.',
+                form = form
+            )
+        except:
+            conn.close()
+            flash('Non è stato possibile trovare i locali', 'error')
+            return redirect(url_for('area_riservata'))
+    else:
+        return redirect(url_for('home'))

@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+{% block content %}
+
+<div class="jumbotron">
+    <h2>Crea corso</h2>
+    <p class="lead">Per entrare nell'area di backoffice devi registrarti.</p>
+</div>
+
+<form class="form form-horizontal" action="" method="post">
+    {% for field, errors in form.errors.items() %}
+    {{ ', '.join(errors) }}
+    {% endfor %}
+
+    {{wtf.quick_form(form, form_type="horizontal", button_map={'courseCreationSubmit': 'success'})}}
+</form>
+
+{% endblock %}

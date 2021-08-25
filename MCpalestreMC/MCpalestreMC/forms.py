@@ -21,3 +21,13 @@ class ProfileModificationForm(FlaskForm):
     numero = StringField('Numero telefonico')
     idPalestra = StringField('Idpalestra')
     profileModificationSubmit = SubmitField('Invia')
+
+class CourseCreationForm(FlaskForm):
+    titolo = StringField('Titolo')
+    descrizione = TextAreaField('Aggiungi descrizione')
+    idLocale = SelectField('Locale', [])
+    courseCreationSubmit = SubmitField('Invia')
+
+    def __init__(self, locali = None, **kwargs):
+        super().__init__(**kwargs)
+        self['idLocale'].choices = locali
