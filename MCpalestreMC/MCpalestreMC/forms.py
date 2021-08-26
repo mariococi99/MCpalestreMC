@@ -48,12 +48,20 @@ class GymManagerRegistrationForm(FlaskForm):
     locali = FieldList(FormField(RoomForm), min_entries=2)
     gymManagerRegistrationSubmit = SubmitField('Invia')
 
+class LocaliForm(FlaskForm):
+    mq = FloatField('Metri quadri locale')
+    personeMax = DecimalField('Capienza massima persone')
+    localiSubmit = SubmitField('Invia')
 
 class ProfileModificationForm(FlaskForm):
     email = EmailField('E-mail')
     numero = StringField('Numero telefonico')
-    idPalestra = StringField('Idpalestra')
+    idPalestra = SelectField('Palestra', [])
     profileModificationSubmit = SubmitField('Invia')
+
+    def __init__(self, palestre = None, **kwargs):
+        super().__init__(**kwargs)
+        self['idPalestra'].choices = palestre
 
 class CovidForm(FlaskForm):
     covid = BooleanField('Covid-19')

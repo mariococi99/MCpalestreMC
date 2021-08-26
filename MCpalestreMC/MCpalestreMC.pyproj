@@ -52,6 +52,7 @@
     <Content Include="MCpalestreMC\templates\area_istruttore.html" />
     <Content Include="MCpalestreMC\templates\corsi.html" />
     <Content Include="MCpalestreMC\templates\crea_corso.html" />
+    <Content Include="MCpalestreMC\templates\crea_locale.html" />
     <Content Include="MCpalestreMC\templates\dettagli_corso.html" />
     <Content Include="MCpalestreMC\templates\dettagli_palestra.html" />
     <Content Include="MCpalestreMC\templates\login.html" />
@@ -60,7 +61,8 @@
     <Content Include="MCpalestreMC\templates\registrazione.html">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="MCpalestreMC\templates\registra_utente.html" />
+    <Content Include="MCpalestreMC\templates\registra_gestore.html" />
+    <Content Include="MCpalestreMC\templates\registra_istruttore.html" />
     <Content Include="requirements.txt" />
     <Content Include="MCpalestreMC\static\content\bootstrap.css" />
     <Content Include="MCpalestreMC\static\content\bootstrap.min.css" />

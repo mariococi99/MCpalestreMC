@@ -6,7 +6,10 @@
     <h2>Area riservata</h2>
     <p class="lead">Per entrare nell'area di backoffice devi registrarti.</p>
     <p><a href="{{ url_for('modifica_profilo') }}" class="btn btn-primary btn-large">Modifica profilo utente &raquo;</a></p>
-    <p><a href="{{ url_for('registra_utente') }}" class="btn btn-warning btn-large">Registra un nuovo istruttore o gestore &raquo;</a></p>
+    <p><a href="{{ url_for('registra_istruttore') }}" class="btn btn-warning btn-large">Registra un nuovo istruttore &raquo;</a></p>
+    <p><a href="{{ url_for('registra_gestore') }}" class="btn btn-warning btn-large">Registra un nuovo gestore &raquo;</a></p>
+    <p><a href="{{ url_for('crea_locale') }}" class="btn btn-warning btn-large">Crea un nuovo locale &raquo;</a></p>
+
 </div>
 
 <div class="btn-grp mx-auto jumbotron mt-5 mb-5">
@@ -14,12 +17,6 @@
         <div class="col-md-6">
             <h1>{{palestra['Titolo']}}</h1>
             <p>Numero persone iscritte: {{palestra['Personeiscritte']}}</p>
-        </div>
-        <div class="col-md-6 ml-auto form-inline">
-            <form class="form-inline" action="{{url_for('dettagli_palestra')}}" method="post">
-                <input type="hidden" name="corso" value="{{palestra['idpalestra']}}" />
-                <input class="btn btn-outline-primary btn-lg" type="submit" name="Dettagli" value="Dettagli" />
-            </form>
         </div>
     </div>
 </div>

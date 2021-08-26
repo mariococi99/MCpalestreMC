@@ -191,11 +191,10 @@ def registrazione():
         form=form
         )
 
-@app.route('/registra_utente', methods=['GET', 'POST'])
+@app.route('/registra_istruttore', methods=['GET', 'POST'])
 @login_required
-def registra_utente():
+def registra_istruttore():
     if current_user.get_tipo() == 'Gestore':
-        scroll = 'top-navbar'
         
         try:
             conn = engine.connect()
@@ -206,10 +205,9 @@ def registra_utente():
             palestre = []
             for p in idpalestre:
                 palestre.append(p[0])
-            form1 = InstructorRegistrationForm(palestre)
-            form2 = GymManagerRegistrationForm()
+            form = InstructorRegistrationForm(palestre)
             
-            if form1.is_submitted():
+            if form.is_submitted():
                 result = request.form
 
                 cf = result['cf']
@@ -227,7 +225,7 @@ def registra_utente():
                     conn.execute("COMMIT")
                     conn.close()
                     flash('Errore: codice fiscale già registrato','error')
-                    return redirect(url_for('registra_utente'))
+                    return redirect(url_for('registra_istruttore'))
 
                 s = text("INSERT INTO utenti VALUES(:cf, :nome, :cognome, :email, :numero, :password, 'Negativo', 'Istruttore', :palestra)")
                 rs = conn.execute (s, cf = cf, nome = nome, cognome = cognome, email = email, numero = numero, password = password, palestra = palestra)
@@ -241,13 +239,38 @@ def registra_utente():
                 rs = conn.execute("FLUSH PRIVILEGES")
                 conn.execute("COMMIT")
 
-            elif form2.is_submitted():
-                result = request.form
+            conn.close()
+            return render_template(
+                "registra_istruttore.html",
+                is_logged = is_logged(),
+                title = 'Registra istruttore',
+                year=datetime.now().year,
+                form = form
+            )
+        except:
+            conn.execute("ROLLBACK")
+            conn.close()
+            flash("Errore durante la registrazione", 'error')
+            return redirect(url_for('registra_istruttore'))
+        
+    return redirect(url_for('home'))
 
-                if request.form.get("AddField", False):
-                    form.locali.append_entry()
-                    scroll = 'add-new-field'
-                else:
+@app.route('/registra_gestore', methods=['GET', 'POST'])
+@login_required
+def registra_gestore():
+    if current_user.get_tipo() == 'Gestore':
+        scroll = 'top-navbar'
+        
+        form = GymManagerRegistrationForm()
+            
+        if form.is_submitted():
+            result = request.form
+
+            if request.form.get("AddField", False):
+                form.locali.append_entry()
+                scroll = 'add-new-field'
+            else:
+                try:
                     cf = result['cf']
                     nome = result['nome']
                     cognome = result['cognome']
@@ -261,7 +284,8 @@ def registra_utente():
                     locali = []
                     for l in form.locali:
                         locali.append(l)
-
+                    conn = engine.connect()
+        
                     conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
                     conn.execute("START TRANSACTION")
             
@@ -272,7 +296,7 @@ def registra_utente():
                         conn.execute("COMMIT")
                         conn.close()
                         flash('Errore: codice fiscale già registrato','error')
-                        return redirect(url_for('registra_utente'))
+                        return redirect(url_for('registra_gestore'))
 
                     s = text("INSERT INTO palestre (titolo, indirizzo, email, telefono, cf) VALUES(:titolo, :indirizzo, :email, :telefono, :cf)")
                     rs = conn.execute (s, titolo = palestra, indirizzo = indirizzo, email = emailPalestra, telefono = telefono, cf = cf)
@@ -297,24 +321,22 @@ def registra_utente():
 
                     rs = conn.execute("FLUSH PRIVILEGES")
                     conn.execute("COMMIT")
-                
+                    conn.close()
+                except:
+                    conn.execute("ROLLBACK")
+                    conn.close()
+                    flash("Errore durante la registrazione", 'error')
+                    return redirect(url_for('registra_gestore'))
+
+        return render_template(
+            "registra_gestore.html",
+            is_logged = is_logged(),
+            title = 'Registra gestore',
+            year=datetime.now().year,
+            form = form,
+            scroll=scroll
+        )
             
-            conn.close()
-            return render_template(
-                "registra_utente.html",
-                is_logged = is_logged(),
-                title = 'Registrazione',
-                year=datetime.now().year,
-                form1=form1,
-                form2=form2,
-                scroll=scroll
-            )
-        except:
-            conn.execute("ROLLBACK")
-            conn.close()
-            flash("Errore durante la registrazione", 'error')
-            return redirect(url_for('registra_utente'))
-        
     return redirect(url_for('home'))
 
 @app.route('/area_riservata', methods=['GET', 'POST'])
@@ -424,13 +446,19 @@ def area_cliente():
 @app.route ('/modifica_profilo', methods=['GET', 'POST'])
 @login_required
 def modifica_profilo():
-    form = ProfileModificationForm()
-    if form.is_submitted():
-        result = request.form
+    try:
         conn = engine.connect()
         conn.execute("SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED")
         conn.execute("START TRANSACTION")
-        try:
+
+        s = text("SELECT idpalestra FROM palestre")
+        idpalestre = conn.execute(s)
+        palestre = []
+        for p in idpalestre:
+            palestre.append(p[0])
+        form = ProfileModificationForm(palestre)
+        if form.is_submitted():
+            result = request.form
             email = result['email']
             numero = result['numero']
             idpalestra = result['idPalestra']
@@ -439,11 +467,11 @@ def modifica_profilo():
             conn.execute("COMMIT")
             conn.close()
             return redirect(url_for('area_riservata'))
-        except:
-            conn.execute("ROLLBACK")
-            conn.close()
-            flash('Errore: modifica non riuscita, riprovare','error')
-            return redirect(url_for('modifica_profilo'))
+    except:
+        conn.execute("ROLLBACK")
+        conn.close()
+        flash('Errore: modifica non riuscita, riprovare','error')
+        return redirect(url_for('modifica_profilo'))
     return render_template(
         "modifica_profilo.html",
         is_logged = is_logged(),
@@ -456,12 +484,17 @@ def modifica_profilo():
 @app.route('/dettagli_corso', methods = ['GET', 'POST'])
 @login_required
 def dettagli_corso():
-    if request.method == 'GET':
+    if current_user.get_tipo() == 'Cliente':
+        print('Cliente')
         result = request.form
         if result['is_iscritto'] == 'True':
             is_subscripted = 'true'
         else:
             is_subscripted = 'false'
+    elif current_user.get_tipo() == 'Istruttore':
+        print('Istruttore')
+    else:
+        print('Anonimo')
     return render_template(
         'dettagli_corso.html',
         is_logged = is_logged(),
@@ -533,6 +566,38 @@ def crea_corso():
             return redirect(url_for('area_riservata'))
     else:
         return redirect(url_for('home'))
+
+@app.route('/crea_locale', methods = ['GET', 'POST'])
+@login_required
+def crea_locale():
+    if (current_user.get_tipo() == 'Gestore'):
+        form = LocaliForm()
+        if form.is_submitted():
+            result = request.form
+            try:
+                mq = result['mq']
+                personemax = result['personeMax']
+                conn = engine.connect()
+                s = text("INSERT INTO locali (mq, personemax, idpalestra) VALUES(:mq, :personemax, :idpalestra)")
+                conn.execute(s, mq = mq, personemax = personemax, idpalestra = current_user.get_palestra())
+                conn.close()
+                flash('Nuovo locale aggiunto!')
+                return redirect(url_for('area_riservata'))
+            except:
+                conn.close()
+                flash('Non è stato possibile trovare i locali', 'error')
+                return redirect(url_for('area_riservata'))
+        return render_template(
+            'crea_locale.html',
+            is_logged = is_logged(),
+            title = 'Crea locale',
+            year = datetime.now().year,
+            message = 'Your application description page.',
+            form = form
+        )
+    else:
+        return redirect(url_for('home'))
+
 
 @app.route('/dettagli_palestra', methods = ['GET', 'POST'])
 def dettagli_palestra():

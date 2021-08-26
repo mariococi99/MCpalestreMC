@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block content %}
+
+<div class="jumbotron">
+    <h2>Registra gestore</h2>
+    <p class="lead">Per entrare nell'area di backoffice devi registrarti.</p>
+</div>
+
+<form class="form form-horizontal" action="" method="post">
+    {% for field, errors in form.errors.items() %}
+    {{ ', '.join(errors) }}
+    {% endfor %}
+
+    {{wtf.form_field(form.cf, form_type="horizontal")}}
+    {{wtf.form_field(form.nome, form_type="horizontal")}}
+    {{wtf.form_field(form.cognome, form_type="horizontal")}}
+    {{wtf.form_field(form.email, form_type="horizontal")}}
+    {{wtf.form_field(form.numero, form_type="horizontal")}}
+    {{wtf.form_field(form.password, form_type="horizontal")}}
+    {{wtf.form_field(form.palestra, form_type="horizontal")}}
+    {{wtf.form_field(form.indirizzo, form_type="horizontal")}}
+    {{wtf.form_field(form.emailPalestra, form_type="horizontal")}}
+    {{wtf.form_field(form.telefono, form_type="horizontal")}}
+
+    <div id="field-list-forms">
+        {% for field in form.locali %}
+        {{wtf.form_field(field, form_type="horizontal")}}
+        {% endfor %}
+        <br />
+        <input id="add-new-field" class="btn btn-default col-lg-offset-2 col-lg-10" type="submit" name="AddField" value="Aggiungi locale" />
+        <br /><br /><hr />
+    </div>
+
+    {{wtf.form_field(form.gymManagerRegistrationSubmit, form_type="horizontal", button_map={'gymManagerRegistrationSubmit': 'success'})}}
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $('#{{scroll}}').scrollIntoView();
+</script>
+{% endblock %}
