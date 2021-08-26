@@ -261,22 +261,32 @@ def area_istruttore():
 @login_required
 def area_cliente():
     if (current_user.get_tipo() == 'Cliente'):
-        if request.method == 'POST':
+        form = CovidForm()
+        if form.is_submitted():
             result = request.form
-            tampone = result['tampone']
-            print(tampone)
-        conn = engine.connect()
-        s=text("SELECT * FROM corsi c NATURAL JOIN iscrizioni i WHERE i.CF =:cf")
-        corsi = conn.execute(s, cf = current_user.get_id())
-        conn.close()
-        return render_template(
+            if 'covid' in result:
+                covid = result['covid']
+                print('bella sei positivo')
+            else:
+                print('sei negativo')
+        try:
+            conn = engine.connect()
+            s=text("SELECT * FROM corsi c NATURAL JOIN iscrizioni i WHERE i.CF =:cf")
+            corsi = conn.execute(s, cf = current_user.get_id())
+            conn.close()
+            return render_template(
             'area_cliente.html',
             is_logged = is_logged(),
             title='Area riservata | Cliente',
             year=datetime.now().year,
             message='Your application description page.',
-            corsi = corsi
+            corsi = corsi,
+            form = form
         )
+        except:
+            conn.close()
+            flash('Erroe durante la richiesta dei corsi a cui sei iscritto','error')
+            return redirect(url_for('area_riservata'))
     else:
         return redirect(url_for('home'))
 

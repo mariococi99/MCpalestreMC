@@ -22,6 +22,10 @@ class ProfileModificationForm(FlaskForm):
     idPalestra = StringField('Idpalestra')
     profileModificationSubmit = SubmitField('Invia')
 
+class CovidForm(FlaskForm):
+    covid = BooleanField('Covid-19')
+    covidSubmit = SubmitField('Invia')
+
 class CourseCreationForm(FlaskForm):
     titolo = StringField('Titolo')
     descrizione = TextAreaField('Aggiungi descrizione')
