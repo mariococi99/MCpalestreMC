@@ -16,6 +16,39 @@ class RegistrationForm(FlaskForm):
     password = PasswordField('Password')
     registrationSubmit = SubmitField('Invia')
 
+class InstructorRegistrationForm(FlaskForm):
+    cf = StringField('Codice fiscale')
+    nome = StringField('Nome')
+    cognome = StringField('Cognome')
+    email = EmailField('E-mail')
+    numero = StringField('Numero telefonico')
+    password = PasswordField('Password')
+    palestra = SelectField('Palestra', [])
+    instructorRegistrationSubmit = SubmitField('Invia')
+
+    def __init__(self, palestre = None, **kwargs):
+        super().__init__(**kwargs)
+        self['palestra'].choices = palestre
+
+class RoomForm(FlaskForm):
+    mq = FloatField('Metri quadri locale')
+    personeMax = DecimalField('Capienza massima persone')
+
+class GymManagerRegistrationForm(FlaskForm):
+    cf = StringField('Codice fiscale')
+    nome = StringField('Nome')
+    cognome = StringField('Cognome')
+    email = EmailField('E-mail')
+    numero = StringField('Numero telefonico')
+    password = PasswordField('Password')
+    palestra = StringField('Nome palestra')
+    indirizzo = StringField('Indirizzo palestra')
+    emailPalestra = EmailField('E-mail palestra')
+    telefono = StringField('Numero telefonico palestra')
+    locali = FieldList(FormField(RoomForm), min_entries=2)
+    gymManagerRegistrationSubmit = SubmitField('Invia')
+
+
 class ProfileModificationForm(FlaskForm):
     email = EmailField('E-mail')
     numero = StringField('Numero telefonico')

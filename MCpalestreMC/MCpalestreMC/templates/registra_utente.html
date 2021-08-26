@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block content %}
+
+<div class="jumbotron">
+    <h2>Registra istruttore o gestore</h2>
+    <p class="lead">Per entrare nell'area di backoffice devi registrarti.</p>
+</div>
+
+<h3>Nuovo istruttore</h3>
+
+<form class="form form-horizontal" action="" method="post">
+    {% for field, errors in form1.errors.items() %}
+    {{ ', '.join(errors) }}
+    {% endfor %}
+
+    {{wtf.quick_form(form1, form_type="horizontal", button_map={'instructorRegistrationSubmit': 'success'})}}
+</form>
+
+</br>
+</hr>
+</br>
+<h3>Nuovo gestore</h3>
+
+<form class="form form-horizontal" action="" method="post">
+    {% for field, errors in form2.errors.items() %}
+    {{ ', '.join(errors) }}
+    {% endfor %}
+
+    {{wtf.form_field(form2.cf, form_type="horizontal")}}
+    {{wtf.form_field(form2.nome, form_type="horizontal")}}
+    {{wtf.form_field(form2.cognome, form_type="horizontal")}}
+    {{wtf.form_field(form2.email, form_type="horizontal")}}
+    {{wtf.form_field(form2.numero, form_type="horizontal")}}
+    {{wtf.form_field(form2.password, form_type="horizontal")}}
+    {{wtf.form_field(form2.palestra, form_type="horizontal")}}
+    {{wtf.form_field(form2.indirizzo, form_type="horizontal")}}
+    {{wtf.form_field(form2.emailPalestra, form_type="horizontal")}}
+    {{wtf.form_field(form2.telefono, form_type="horizontal")}}
+
+    <div id="field-list-forms">
+        {% for field in form2.locali %}
+        {{wtf.form_field(field, form_type="horizontal")}}
+        {% endfor %}
+        <br />
+        <input id="add-new-field" class="btn btn-default col-lg-offset-2 col-lg-10" type="submit" name="AddField" value="Aggiungi locale" />
+        <br /><br /><hr />
+    </div>
+
+    {{wtf.form_field(form2.gymManagerRegistrationSubmit, form_type="horizontal", button_map={'gymManagerRegistrationSubmit': 'success'})}}
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $('#{{scroll}}').scrollIntoView();
+</script>
+{% endblock %}

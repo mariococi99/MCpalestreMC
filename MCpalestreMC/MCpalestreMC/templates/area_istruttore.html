@@ -9,6 +9,44 @@
     <p><a href="{{ url_for('crea_corso') }}" class="btn btn-warning btn-large">Aggiungi corsi &raquo;</a></p>
 </div>
 
+<form class="form form-horizontal" action="" method="post">
+    {% for field, errors in form.errors.items() %}
+    {{ ', '.join(errors) }}
+    {% endfor %}
 
+    {{wtf.quick_form(form, form_type="horizontal", button_map={'covidSubmit': 'warning'})}}
+</form>
+
+{% for c in corsi %}
+<div class="btn-grp mx-auto jumbotron mt-5 mb-5">
+    <div class="row">
+        <div class="col-md-6">
+            <h1>{{c['Titolo']}}</h1>
+            <p>Numero persone iscritte: {{c['Personeiscritte']}}</p>
+        </div>
+        <div class="col-md-6 ml-auto form-inline">
+            <form class="form-inline" action="{{url_for('dettagli_corso')}}" method="post">
+                <input type="hidden" name="corso" value="{{c['idcorso']}}" />
+                <input class="btn btn-outline-primary btn-lg" type="submit" name="Dettagli" value="Dettagli" />
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+    $(function () {
+        $('#covid').bootstrapToggle({
+            on: 'Positivo',
+            off: 'Negativo',
+            onstyle: 'danger',
+            offstyle: 'success'
+        });
+    });
+</script>
 
 {% endblock %}

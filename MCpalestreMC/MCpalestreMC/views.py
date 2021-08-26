@@ -43,6 +43,9 @@ class User (UserMixin):
     def get_id(self):
         return self.cf
 
+    def get_palestra(self):
+        return self.palestra
+
 def is_logged():
     if current_user.is_authenticated:
         return 'true'
@@ -188,6 +191,132 @@ def registrazione():
         form=form
         )
 
+@app.route('/registra_utente', methods=['GET', 'POST'])
+@login_required
+def registra_utente():
+    if current_user.get_tipo() == 'Gestore':
+        scroll = 'top-navbar'
+        
+        try:
+            conn = engine.connect()
+            conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+            conn.execute("START TRANSACTION")
+            s = text("SELECT idpalestra FROM palestre ")
+            idpalestre = conn.execute(s)
+            palestre = []
+            for p in idpalestre:
+                palestre.append(p[0])
+            form1 = InstructorRegistrationForm(palestre)
+            form2 = GymManagerRegistrationForm()
+            
+            if form1.is_submitted():
+                result = request.form
+
+                cf = result['cf']
+                nome = result['nome']
+                cognome = result['cognome']
+                email = result['email']
+                numero = result['numero']
+                password = result['password']
+                palestra = result['palestra']
+            
+                s = text("SELECT u.CF FROM utenti u WHERE u.CF =:cf")
+                id = conn.execute(s, cf = cf).fetchone()
+            
+                if id:
+                    conn.execute("COMMIT")
+                    conn.close()
+                    flash('Errore: codice fiscale già registrato','error')
+                    return redirect(url_for('registra_utente'))
+
+                s = text("INSERT INTO utenti VALUES(:cf, :nome, :cognome, :email, :numero, :password, 'Negativo', 'Istruttore', :palestra)")
+                rs = conn.execute (s, cf = cf, nome = nome, cognome = cognome, email = email, numero = numero, password = password, palestra = palestra)
+            
+                s = text("create user :codice@'localhost' identified with mysql_native_password by :password")
+                rs = conn.execute (s, codice = cf, password = password)
+
+                s = text("GRANT Istruttore to :codice@'localhost'")
+                rs = conn.execute(s, codice = cf)
+
+                rs = conn.execute("FLUSH PRIVILEGES")
+                conn.execute("COMMIT")
+
+            elif form2.is_submitted():
+                result = request.form
+
+                if request.form.get("AddField", False):
+                    form.locali.append_entry()
+                    scroll = 'add-new-field'
+                else:
+                    cf = result['cf']
+                    nome = result['nome']
+                    cognome = result['cognome']
+                    email = result['email']
+                    numero = result['numero']
+                    password = result['password']
+                    palestra = result['palestra']
+                    indirizzo = result['indirizzo']
+                    emailPalestra = result['emailPalestra']
+                    telefono = result['telefono']
+                    locali = []
+                    for l in form.locali:
+                        locali.append(l)
+
+                    conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+                    conn.execute("START TRANSACTION")
+            
+                    s = text("SELECT u.CF FROM utenti u WHERE u.CF =:cf")
+                    id = conn.execute(s, cf = cf).fetchone()
+            
+                    if id:
+                        conn.execute("COMMIT")
+                        conn.close()
+                        flash('Errore: codice fiscale già registrato','error')
+                        return redirect(url_for('registra_utente'))
+
+                    s = text("INSERT INTO palestre (titolo, indirizzo, email, telefono, cf) VALUES(:titolo, :indirizzo, :email, :telefono, :cf)")
+                    rs = conn.execute (s, titolo = palestra, indirizzo = indirizzo, email = emailPalestra, telefono = telefono, cf = cf)
+
+                    s = text("SELECT idpalestra FROM palestre WHERE CF =:cf")
+                    idpalestra = conn.execute(s, cf = cf).fetchone()
+
+                    for l in locali:
+                        mq = l['mq'].data
+                        personemax = l['personeMax'].data
+                        s = text("INSERT INTO locali (mq, personemax, idpalestra) VALUES(:mq, :personemax, :idpalestra)")
+                        rs = conn.execute (s, mq = mq, personemax = personemax, idpalestra = idpalestra)
+
+                    s = text("INSERT INTO utenti VALUES(:cf, :nome, :cognome, :email, :numero, :password, 'Negativo', 'Gestore', :idpalestra)")
+                    rs = conn.execute (s, cf = cf, nome = nome, cognome = cognome, email = email, numero = numero, password = password, palestra = idpalestra)
+            
+                    s = text("create user :codice@'localhost' identified with mysql_native_password by :password")
+                    rs = conn.execute (s, codice = cf, password = password)
+
+                    s = text("GRANT Gestore to :codice@'localhost'")
+                    rs = conn.execute(s, codice = cf)
+
+                    rs = conn.execute("FLUSH PRIVILEGES")
+                    conn.execute("COMMIT")
+                
+            
+            conn.close()
+            return render_template(
+                "registra_utente.html",
+                is_logged = is_logged(),
+                title = 'Registrazione',
+                year=datetime.now().year,
+                form1=form1,
+                form2=form2,
+                scroll=scroll
+            )
+        except:
+            conn.execute("ROLLBACK")
+            conn.close()
+            flash("Errore durante la registrazione", 'error')
+            return redirect(url_for('registra_utente'))
+        
+    return redirect(url_for('home'))
+
 @app.route('/area_riservata', methods=['GET', 'POST'])
 @login_required
 def area_riservata():
@@ -237,13 +366,15 @@ def abbonamenti():
 @app.route('/area_gestore', methods = ['GET'])
 @login_required
 def area_gestore():
+    palestra=[]
     """Renders the about page."""
     return render_template(
         'area_gestore.html',
         is_logged = is_logged(),
         title='Area riservata | Gestore',
         year=datetime.now().year,
-        message='Your application description page.'
+        message='Your application description page.',
+        palestra = palestra
     )
 
 @app.route('/area_istruttore', methods = ['GET'])
@@ -371,8 +502,8 @@ def crea_corso():
     if (current_user.get_tipo() == 'Istruttore' or current_user.get_tipo() == 'Gestore'):
         try:
             conn = engine.connect()
-            s = text("SELECT idlocale FROM locali ")
-            idlocali = conn.execute(s)
+            s = text("SELECT idlocale FROM locali WHERE idpalestra =:idpalestra")
+            idlocali = conn.execute(s, idpalestra = current_user.get_palestra())
             locali = []
             for l in idlocali:
                 locali.append(l[0])
@@ -402,3 +533,13 @@ def crea_corso():
             return redirect(url_for('area_riservata'))
     else:
         return redirect(url_for('home'))
+
+@app.route('/dettagli_palestra', methods = ['GET', 'POST'])
+def dettagli_palestra():
+    return render_template(
+        'dettagli_palestra.html',
+        is_logged = is_logged(),
+        title='Dettagli palestra',
+        year=datetime.now().year,
+        message='Your application description page.'
+    )
