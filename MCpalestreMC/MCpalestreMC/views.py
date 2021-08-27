@@ -3,7 +3,7 @@ Routes and views for the flask application.
 """
 
 from datetime import datetime
-from flask import render_template, url_for, request, flash, session, redirect
+from flask import render_template, url_for, request, flash, session, redirect, Blueprint
 from flask_bootstrap import Bootstrap
 from MCpalestreMC import app
 from MCpalestreMC.forms import *
@@ -266,7 +266,7 @@ def registra_gestore():
         if form.is_submitted():
             result = request.form
 
-            if request.form.get("AddField", False):
+            if result.get("AddField", False):
                 form.locali.append_entry()
                 scroll = 'add-new-field'
             else:
@@ -332,9 +332,9 @@ def registra_gestore():
             "registra_gestore.html",
             is_logged = is_logged(),
             title = 'Registra gestore',
-            year=datetime.now().year,
+            year = datetime.now().year,
             form = form,
-            scroll=scroll
+            scroll = scroll
         )
             
     return redirect(url_for('home'))
@@ -388,16 +388,26 @@ def abbonamenti():
 @app.route('/area_gestore', methods = ['GET'])
 @login_required
 def area_gestore():
-    palestra=[]
-    """Renders the about page."""
-    return render_template(
-        'area_gestore.html',
-        is_logged = is_logged(),
-        title='Area riservata | Gestore',
-        year=datetime.now().year,
-        message='Your application description page.',
-        palestra = palestra
-    )
+    if (current_user.get_tipo() == 'Gestore'):
+        try:
+            conn = engine.connect()
+            s=text("SELECT p.Titolo, p.Indirizzo, p.Email, p.Telefono, COUNT(*) AS Personeiscritte FROM palestre p JOIN utenti u USING (idpalestra) WHERE u.tipo = 'Cliente' AND p.idpalestra =:idpalestra ")
+            palestra = conn.execute(s, idpalestra = current_user.get_palestra()).fetchone()
+            conn.close()
+            return render_template(
+                'area_gestore.html',
+                is_logged = is_logged(),
+                title='Area riservata | Gestore',
+                year=datetime.now().year,
+                message='Your application description page.',
+                palestra = palestra
+            )
+        except:
+            conn.close()
+            flash('Erroe durante la richiesta dei dati della palestra','error')
+            return redirect(url_for('home'))
+    return redirect(url_for('home'))
+    
 
 @app.route('/area_istruttore', methods = ['GET'])
 @login_required

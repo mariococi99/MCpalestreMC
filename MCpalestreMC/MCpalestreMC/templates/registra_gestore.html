@@ -19,6 +19,9 @@
     {{wtf.form_field(form.email, form_type="horizontal")}}
     {{wtf.form_field(form.numero, form_type="horizontal")}}
     {{wtf.form_field(form.password, form_type="horizontal")}}
+
+    <br /><br /><hr />
+
     {{wtf.form_field(form.palestra, form_type="horizontal")}}
     {{wtf.form_field(form.indirizzo, form_type="horizontal")}}
     {{wtf.form_field(form.emailPalestra, form_type="horizontal")}}
@@ -40,6 +43,6 @@
 
 {% block scripts %}
 <script>
-    $('#{{scroll}}').scrollIntoView();
+    $('#{{scroll}}').focus();
 </script>
 {% endblock %}

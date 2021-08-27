@@ -40,11 +40,14 @@
     <Folder Include="MCpalestreMC\static\" />
     <Folder Include="MCpalestreMC\static\content\" />
     <Folder Include="MCpalestreMC\static\fonts\" />
+    <Folder Include="MCpalestreMC\static\images\" />
     <Folder Include="MCpalestreMC\static\scripts\" />
     <Folder Include="MCpalestreMC\templates\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="MCpalestreMC\Database\Tabelle.sql" />
+    <Content Include="MCpalestreMC\static\images\gym.jpg" />
+    <Content Include="MCpalestreMC\static\images\pesi.jpg" />
     <Content Include="MCpalestreMC\templates\abbonamenti.html" />
     <Content Include="MCpalestreMC\templates\altri_corsi.html" />
     <Content Include="MCpalestreMC\templates\area_cliente.html" />
