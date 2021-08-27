@@ -56,7 +56,6 @@
     <Content Include="MCpalestreMC\templates\corsi.html" />
     <Content Include="MCpalestreMC\templates\crea_corso.html" />
     <Content Include="MCpalestreMC\templates\crea_locale.html" />
-    <Content Include="MCpalestreMC\templates\dettagli_corso.html" />
     <Content Include="MCpalestreMC\templates\dettagli_palestra.html" />
     <Content Include="MCpalestreMC\templates\login.html" />
     <Content Include="MCpalestreMC\templates\modifica_profilo.html" />
@@ -90,7 +89,6 @@
     <Content Include="MCpalestreMC\static\scripts\respond.min.js" />
     <Content Include="MCpalestreMC\static\scripts\_references.js" />
     <Content Include="MCpalestreMC\templates\about.html" />
-    <Content Include="MCpalestreMC\templates\contact.html" />
     <Content Include="MCpalestreMC\templates\index.html" />
     <Content Include="MCpalestreMC\templates\layout.html" />
   </ItemGroup>

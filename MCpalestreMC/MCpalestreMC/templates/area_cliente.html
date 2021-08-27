@@ -11,30 +11,38 @@
 </div>
 
 <form class="form form-horizontal" action="" method="post">
-    {% for field, errors in form.errors.items() %}
+    <h2>Segnalazione Covid-19</h2>
+    {% for field, errors in form1.errors.items() %}
     {{ ', '.join(errors) }}
     {% endfor %}
 
-    {{wtf.quick_form(form, form_type="horizontal", button_map={'covidSubmit': 'warning'})}}
-</form>
+    {{wtf.quick_form(form1, form_type="horizontal", button_map={'covidSubmit': 'warning'})}}
+</form><br />
 
 {% for c in corsi %}
 <div class="btn-grp mx-auto jumbotron mt-5 mb-5">
     <div class="row">
         <div class="col-md-6">
-            <h1>{{c['Titolo']}}</h1>
+            <h2><b>{{c['Titolo']}}</b></h2>
+            <p>
+                Istruttore: {{c['Nome']}} {{c['Cognome']}}<br />
+                Locale: {{c['Idlocale']}}<br />
+                Periodo del corso: dal {{c['Datainizio']}} al {{c['Datafine']}}<br />
+                Giorno della settimana: {{c['Giorno']}}<br />
+                Orario: {{c['Orarioinizio']}}<br /><br />
+                {{c['Descrizione']}}
+            </p>
         </div>
-        <div class="col-md-6 ml-auto form-inline">
-            <form class="form-inline" action="{{url_for('dettagli_corso')}}" method="post">
-                <input type="hidden" name="corso" value="{{c['idcorso']}}" />
-                <input type="hidden" name="is_iscritto" value="True" />
-                <input class="btn btn-outline-primary btn-lg" type="submit" name="Dettagli" value="Dettagli" />
-            </form>
-        </div>
+        <form class="form form-horizontal" action="" method="post">
+            {% for field, errors in form2.errors.items() %}
+            {{ ', '.join(errors) }}
+            {% endfor %}
+            <input type="hidden" name="idcorso" value="{{c['Idcorso']}}" />
+            {{wtf.quick_form(form2, form_type="horizontal", button_map={'subscriptionSubmit': 'danger'})}}
+        </form>
     </div>
 </div>
 {% endfor %}
-
 
 {% endblock %}
 

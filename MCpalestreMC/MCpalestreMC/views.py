@@ -1,7 +1,6 @@
 """
-Routes and views for the flask application.
+Questi import servono per far funzionare interamente l'applicazione web
 """
-
 from datetime import datetime
 from flask import render_template, url_for, request, flash, session, redirect, Blueprint
 from flask_bootstrap import Bootstrap
@@ -12,20 +11,37 @@ from sqlalchemy import *
 import flask_login
 from flask_login import LoginManager, login_required, login_user, UserMixin, login_manager, logout_user, current_user
 
-app.config['SECRET_KEY'] ='bgit4y5394rjfienvtn8'
+"""
+Setting che inizializzano la secret key flash
+"""
+app.config['SECRET_KEY'] = 'bgit4y5394rjfienvtn8'
 login_manager = LoginManager()
 login_manager.init_app(app)
-bootstrap = Bootstrap(app)
+bootstrap = Bootstrap(app) #Istanziamento della classe Bootstrap per
 
-uri = 'mysql://anonimo:anonimo@localhost/mcpalestremc' #collegamento al dbms
-engine = create_engine(uri)
+"""
+Mi collego al dbms come utente anonimo
+Creo l'engine(collegamento al dbms) globale
+Attivo i ruoli sul database
+"""
+uri = 'mysql://anonimo:anonimo@localhost/mcpalestremc' #uri per collegarsi al dbms
+engine = create_engine(uri) #crea il collegamento con il dbms
 conn = engine.connect()
 conn.execute("set global activate_all_roles_on_login = on") #attivazione ruoli
 conn.close()
 
+"""
+Variabile che conterrà la data in caso di necessità 
+"""
 today = datetime.today().strftime('%Y-%m-%d')
 
+"""
+Classe che viene usata per contenere i dati di un utente generico
+"""
 class User (UserMixin):
+    """
+    Costruttore
+    """
     def __init__ (self, cf, nome, cognome, email, numero, pwd, tampone, tipo, palestra):
         self.cf = cf
         self.nome = nome
@@ -36,16 +52,31 @@ class User (UserMixin):
         self.tampone = tampone
         self.tipo = tipo
         self.palestra = palestra
-
+    
+    """
+    Questa funzione ritorna il tipo di utente tra Istruttore, Gestore e Cliente
+    """
     def get_tipo(self):
         return self.tipo
 
+    """
+    Questa funzione ritorna il codice fiscale dell'utente
+    """
     def get_id(self):
         return self.cf
 
+    """
+    Questa funzione ritorna l'id della palestra a cui ha accesso l'utente
+    """
     def get_palestra(self):
         return self.palestra
 
+
+"""
+Questa funzione serve per vedere se l'utente è loggato o meno
+Visto che il passaggio di dati da javascript a python può sollevare problemi,
+si è preferito scrivere una funzione per risolvere la questione
+"""
 def is_logged():
     if current_user.is_authenticated:
         return 'true'
@@ -63,6 +94,9 @@ def load_user (user_cf):
     conn.close()
     return User(user.cf, user.nome, user.cognome, user.email, user.numero, user.password, user.tampone, user.tipo, user.idpalestra)
 
+"""
+La funzione home ritorna il rendering della pagina principale/iniziale
+"""
 @app.route('/', methods = ['GET', 'POST'])
 @app.route('/home', methods = ['GET', 'POST'])
 def home():
@@ -72,17 +106,6 @@ def home():
         is_logged = is_logged(),
         title ='Home page',
         year = datetime.now().year,
-    )
-
-@app.route('/contact', methods = ['GET', 'POST'])
-def contact():
-    """Renders the contact page."""
-    return render_template(
-        'contact.html',
-        is_logged = is_logged(),
-        title = 'Contatti',
-        year = datetime.now().year,
-        message = 'Your contact page.'
     )
 
 @app.route('/about', methods = ['GET', 'POST'])
@@ -354,29 +377,52 @@ def area_riservata():
 
 @app.route('/palestre', methods = ['GET'])
 def palestre():
-    """Renders the about page."""
+    lista_palestre = []
+    try:
+        conn = engine.connect()
+        s = text("SELECT p.Titolo, p.Indirizzo, p.Email, p.Telefono, u.Nome, u.Cognome FROM palestre p JOIN utenti u USING (cf)")
+        palestre = conn.execute(s)
+        conn.close()
+        for p in palestre:
+            lista_palestre.append(p)
+    except:
+        conn.close()
+        flash('Errore, riprovare','error')
+        return redirect(url_for('home'))
     return render_template(
         'palestre.html',
         is_logged = is_logged(),
         title='Palestre',
         year=datetime.now().year,
-        message='Your application description page.'
+        message='Your application description page.',
+        palestre = lista_palestre
     )
 
 @app.route('/corsi', methods = ['GET'])
 def corsi():
-    """Renders the about page."""
+    lista_corsi = []
+    try:
+        conn = engine.connect()
+        s = text("SELECT c.Idcorso, c.Titolo, u.Nome, u.Cognome c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine FROM corsi c NATURAL JOIN utenti u")
+        corsi = conn.execute(s)
+        conn.close()
+        for c in corsi:
+            lista_corsi.append(c)
+    except:
+        conn.close()
+        flash('Errore, riprovare','error')
+        return redirect(url_for('home'))
     return render_template(
-        'corsi.html',
-        is_logged = is_logged(),
-        title='Corsi',
-        year=datetime.now().year,
-        message='Your application description page.'
-    )
-
+            'corsi.html',
+            is_logged = is_logged(),
+            title='Corsi',
+            year=datetime.now().year,
+            message='Your application description page.',
+            corsi = lista_corsi
+        )
+    
 @app.route('/abbonamenti', methods = ['GET'])
 def abbonamenti():
-    """Renders the about page."""
     return render_template(
         'abbonamenti.html',
         is_logged = is_logged(),
@@ -391,7 +437,7 @@ def area_gestore():
     if (current_user.get_tipo() == 'Gestore'):
         try:
             conn = engine.connect()
-            s=text("SELECT p.Titolo, p.Indirizzo, p.Email, p.Telefono, COUNT(*) AS Personeiscritte FROM palestre p JOIN utenti u USING (idpalestra) WHERE u.tipo = 'Cliente' AND p.idpalestra =:idpalestra ")
+            s=text("SELECT p.Titolo, p.Indirizzo, p.Email, p.Telefono, COUNT(u.tipo) AS Personeiscritte FROM palestre p LEFT JOIN utenti u USING (idpalestra) WHERE u.tipo = 'Cliente' AND p.idpalestra =:idpalestra ")
             palestra = conn.execute(s, idpalestra = current_user.get_palestra()).fetchone()
             conn.close()
             return render_template(
@@ -409,46 +455,103 @@ def area_gestore():
     return redirect(url_for('home'))
     
 
-@app.route('/area_istruttore', methods = ['GET'])
+@app.route('/area_istruttore', methods = ['GET', 'POST'])
 @login_required
 def area_istruttore():
-    return render_template(
-        'area_istruttore.html',
-        is_logged = is_logged(),
-        title='Area riservata | Istruttore',
-        year=datetime.now().year,
-        message='Your application description page.'
-    )
+    if (current_user.get_tipo() == 'Istruttore'):
+        form1 = CovidForm()
+        form2 = SubscriptionForm()
+        try:
+            conn = engine.connect()
+            conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+            conn.execute("START TRANSACTION")
+            if form2.is_submitted() and 'idcorso' in request.form:
+                result = request.form
+                idcorso = result['idcorso']
+                s = text("DELETE FROM corsi WHERE idcorso =:idcorso")
+                conn.execute(s, idcorso = idcorso)
+                conn.execute("COMMIT")
+                conn.close()
+                return redirect(url_for('area_riservata'))
+            if form1.is_submitted():
+                result = request.form
+                if 'covid' in result:
+                    s = text("UPDATE utenti SET tampone = 'Positivo' WHERE cf =:cf")
+                    conn.execute(s, cf = current_user.get_id())
+                else:
+                    s = text("UPDATE utenti SET tampone = 'Negativo' WHERE cf =:cf")
+                    conn.execute(s, cf = current_user.get_id())
+                conn.close()
+                return redirect(url_for('area_riservata'))
+            s=text("SELECT c.Idcorso, c.Titolo, c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine, COUNT(i.cf) AS Personeiscritte FROM corsi c LEFT JOIN iscrizioni i ON c.idcorso = i.idcorso WHERE c.CF =:cf GROUP BY c.idcorso")
+            corsi = conn.execute(s, cf = current_user.get_id())
+            lista_corsi = []
+            for c in corsi:
+                lista_corsi.append(c)
+            conn.close()
+            return render_template(
+                'area_istruttore.html',
+                is_logged = is_logged(),
+                title='Area riservata | Istruttore',
+                year=datetime.now().year,
+                message='Your application description page.',
+                corsi = lista_corsi,
+                form1 = form1,
+                form2 = form2
+            )
+        except:
+            conn.close()
+            flash('Errore durante la richiesta dei dati dei corsi','error')
+            return redirect(url_for('home'))
+    return redirect(url_for('home'))
 
 @app.route('/area_cliente', methods = ['GET', 'POST'])
 @login_required
 def area_cliente():
     if (current_user.get_tipo() == 'Cliente'):
-        form = CovidForm()
-        if form.is_submitted():
-            result = request.form
-            if 'covid' in result:
-                covid = result['covid']
-                print('bella sei positivo')
-            else:
-                print('sei negativo')
+        form1 = CovidForm()
+        form2 = SubscriptionForm()
         try:
             conn = engine.connect()
-            s=text("SELECT * FROM corsi c NATURAL JOIN iscrizioni i WHERE i.CF =:cf")
+            conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+            conn.execute("START TRANSACTION")
+            if form2.is_submitted() and 'idcorso' in request.form:
+                result = request.form
+                idcorso = result['idcorso']
+                s = text("DELETE FROM iscrizioni WHERE idcorso =:idcorso AND cf =:cf")
+                conn.execute(s, idcorso = idcorso, cf = current_user.get_id())
+                conn.execute("COMMIT")
+                conn.close()
+                return redirect(url_for('area_riservata'))
+            elif form1.is_submitted():
+                result = request.form
+                if 'covid' in result:
+                    s = text("UPDATE utenti SET tampone = 'Positivo' WHERE cf =:cf")
+                    conn.execute(s, cf = current_user.get_id())
+                else:
+                    s = text("UPDATE utenti SET tampone = 'Negativo' WHERE cf =:cf")
+                    conn.execute(s, cf = current_user.get_id())
+                conn.close()
+                return redirect(url_for('area_riservata'))
+            s=text("SELECT c.Idcorso, c.Titolo, u.Nome, u.Cognome, c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine FROM utenti u NATURAL JOIN corsi c JOIN iscrizioni i USING(idcorso) WHERE i.CF =:cf")
             corsi = conn.execute(s, cf = current_user.get_id())
+            lista_corsi = []
+            for c in corsi:
+                lista_corsi.append(c)
             conn.close()
             return render_template(
-            'area_cliente.html',
-            is_logged = is_logged(),
-            title='Area riservata | Cliente',
-            year=datetime.now().year,
-            message='Your application description page.',
-            corsi = corsi,
-            form = form
-        )
+                'area_cliente.html',
+                is_logged = is_logged(),
+                title='Area riservata | Cliente',
+                year=datetime.now().year,
+                message='Your application description page.',
+                corsi = lista_corsi,
+                form1 = form1,
+                form2 = form2
+            )
         except:
             conn.close()
-            flash('Erroe durante la richiesta dei corsi a cui sei iscritto','error')
+            flash('Errore durante la richiesta dei corsi a cui sei iscritto','error')
             return redirect(url_for('area_riservata'))
     else:
         return redirect(url_for('home'))
@@ -491,53 +594,51 @@ def modifica_profilo():
         form = form
     )
 
-@app.route('/dettagli_corso', methods = ['GET', 'POST'])
-@login_required
-def dettagli_corso():
-    if current_user.get_tipo() == 'Cliente':
-        print('Cliente')
-        result = request.form
-        if result['is_iscritto'] == 'True':
-            is_subscripted = 'true'
-        else:
-            is_subscripted = 'false'
-    elif current_user.get_tipo() == 'Istruttore':
-        print('Istruttore')
-    else:
-        print('Anonimo')
-    return render_template(
-        'dettagli_corso.html',
-        is_logged = is_logged(),
-        title='Dettagli corso',
-        year=datetime.now().year,
-        message='Your application description page.',
-        is_subscripted = is_subscripted
-    )
-
-
-@app.route('/altri_corsi', methods = ['GET'])
+@app.route('/altri_corsi', methods = ['GET', 'POST'])
 @login_required
 def altri_corsi():
     if (current_user.get_tipo() == 'Cliente'):
+        form = SubscriptionForm()
+        if form.is_submitted():
+            try:
+                result = request.form
+                idcorso = result['idcorso']
+                conn = engine.connect()
+                conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+                conn.execute("START TRANSACTION")
+                s = text("INSERT INTO iscrizioni VALUES (:idcorso, :cf)")
+                conn.execute(s, idcorso = idcorso, cf = current_user.get_id())
+                conn.execute("COMMIT")
+                conn.close()
+                return redirect(url_for('altri_corsi'))
+            except:
+                conn.close()
+                flash('Qualcosa è andato storto', 'error')
+                return redirect(url_for('area_riservata'))
         try:
-            conn = engine.connect() #connessione aperta
-            s = text("SELECT * FROM corsi c WHERE :cf NOT IN (SELECT i.CF FROM iscrizioni i WHERE i.idcorso = c.idcorso)")
+            conn = engine.connect()
+            s = text("SELECT c.Idcorso, c.Titolo, u.Nome, u.Cognome, c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine FROM corsi c NATURAL JOIN utenti u WHERE :cf NOT IN (SELECT i.CF FROM iscrizioni i WHERE i.idcorso = c.idcorso)")
             corsi = conn.execute(s, cf = current_user.get_id())
-            conn.close() #connessione chiusa
+            conn.close()
+            lista_corsi = []
+            for c in corsi:
+                lista_corsi.append(c)
+            
             return render_template(
                 'altri_corsi.html',
                 is_logged = is_logged(),
                 title = 'Altri corsi',
                 year = datetime.now().year,
                 message = 'Your application description page.',
-                corsi = corsi
+                corsi = lista_corsi,
+                form = form
             )
         except:
             conn.close()
             flash('Non è stato possibile trovare altri corsi', 'error')
             return redirect(url_for('area_riservata'))
     else:
-        return redirect(url_for('home')) #rimando alla home page
+        return redirect(url_for('home'))
 
 @app.route('/crea_corso', methods = ['GET', 'POST'])
 @login_required
@@ -555,7 +656,12 @@ def crea_corso():
                 result = request.form
                 titolo = result['titolo']
                 descrizione = result['descrizione']
+                datainizio = result['dataInizio']
+                datafine = result['dataFine']
+                giorno = result['giorno']
+                orarioinizio = result['orarioInizio']
                 idlocale = result['idLocale']
+                #to change
                 s = text("INSERT INTO corsi (titolo, descrizione, idlocale, cf) VALUES(:titolo, :descrizione, :idlocale, :cf)")
                 conn.execute(s, titolo = titolo, descrizione = descrizione, idlocale = idlocale, cf = current_user.get_id())
                 conn.close()

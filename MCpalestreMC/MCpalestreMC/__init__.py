@@ -1,5 +1,5 @@
 """
-The flask application package.
+Script che lancia il framework Flask
 """
 
 from flask import Flask

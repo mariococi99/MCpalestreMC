@@ -1,5 +1,5 @@
 """
-This script runs the MCpalestreMC application using a development server.
+Questo script lancia l'applicazione 
 """
 
 from os import environ

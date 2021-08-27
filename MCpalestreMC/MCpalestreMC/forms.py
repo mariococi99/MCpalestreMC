@@ -70,9 +70,16 @@ class CovidForm(FlaskForm):
 class CourseCreationForm(FlaskForm):
     titolo = StringField('Titolo')
     descrizione = TextAreaField('Aggiungi descrizione')
+    dataInizio = DateField('Data di inizio corso')
+    dataFine = DateField('Data di fine corso')
+    giorno = SelectField('Giorno della settimana', choices = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'])
+    orarioInizio = SelectField('Orario', choices = ['08:00','10:00','12:00','14:00','16:00','18:00','20:00'])
     idLocale = SelectField('Locale', [])
     courseCreationSubmit = SubmitField('Invia')
 
     def __init__(self, locali = None, **kwargs):
         super().__init__(**kwargs)
         self['idLocale'].choices = locali
+
+class SubscriptionForm(FlaskForm):
+    subscriptionSubmit = SubmitField('Invia')
