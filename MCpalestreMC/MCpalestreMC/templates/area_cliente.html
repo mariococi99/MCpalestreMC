@@ -1,6 +1,14 @@
 {% extends "layout.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
+{% block head %}
+<style>
+    .sospeso{
+        color: red;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <div class="jumbotron area-riservata">
@@ -19,7 +27,8 @@
     {% endfor %}
 
     {{wtf.quick_form(form1, form_type="horizontal", button_map={'covidSubmit': 'warning'})}}
-</form><br />
+</form>
+<br />
 
 {% for c in corsi %}
 <div class="btn-grp mx-auto jumbotron mt-5 mb-5">
@@ -35,6 +44,13 @@
                 {{c['Descrizione']}}
             </p>
         </div>
+        {% if c['Sospeso'] == 'SOSPESO' %}
+        <div class="col-md-6 sospeso">
+            <p>
+                Questo corso e' stato sospeso per ragioni Covid-19.
+            </p>
+        </div>
+        {% endif %}
         <form class="form form-horizontal" action="" method="post">
             {% for field, errors in form2.errors.items() %}
             {{ ', '.join(errors) }}

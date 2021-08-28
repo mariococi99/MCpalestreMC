@@ -70,12 +70,13 @@
             alert($(element).html());
             this.remove(this);
         });
-        if ({{ is_logged }} == true) {
+        if ({{ is_logged }} == true){
             $('#nav-areariservata').removeClass('disabled');
             $('#nav-registrazione').hide();
             $('#nav-login').hide();
             $('#nav-logout').show();
-        } else {
+        } 
+        else{
             $('#nav-areariservata').addClass('disabled');
             $('#nav-registrazione').show();
             $('#nav-login').show();

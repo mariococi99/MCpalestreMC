@@ -1,5 +1,13 @@
 {% extends "layout.html" %}
 
+{% block head %}
+<style>
+    .sospeso {
+        color: red;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <div class="jumbotron corsi">
@@ -21,8 +29,14 @@
                 {{c['Descrizione']}}
             </p>
         </div>
+        {% if c['Sospeso'] == 'SOSPESO' %}
+        <div class="col-md-6 sospeso">
+            <p>
+                Questo corso e' stato sospeso per ragioni Covid-19.
+            </p>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endfor %}
-
 {% endblock %}

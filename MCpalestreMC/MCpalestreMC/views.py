@@ -464,7 +464,7 @@ def corsi():
     lista_corsi = []
     try:
         conn = engine.connect()
-        s = text("SELECT c.Idcorso, c.Titolo, u.Nome, u.Cognome, c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine FROM corsi c NATURAL JOIN utenti u")
+        s = text("SELECT c.Idcorso, c.Titolo, u.Nome, u.Cognome, c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine, c.Sospeso FROM corsi c NATURAL JOIN utenti u")
         corsi = conn.execute(s)
         conn.close()
         for c in corsi:
@@ -544,7 +544,7 @@ def area_istruttore():
                     conn.execute(s, cf = current_user.get_id())
                 conn.close()
                 return redirect(url_for('area_riservata'))
-            s = text("SELECT c.Idcorso, c.Titolo, c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine, COUNT(i.cf) AS Personeiscritte FROM corsi c LEFT JOIN iscrizioni i ON c.idcorso = i.idcorso WHERE c.CF =:cf AND c.datafine > CURDATE() GROUP BY c.idcorso")
+            s = text("SELECT c.Idcorso, c.Titolo, c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine, c.Sospeso, COUNT(i.cf) AS Personeiscritte FROM corsi c LEFT JOIN iscrizioni i ON c.idcorso = i.idcorso WHERE c.CF =:cf AND c.datafine > CURDATE() GROUP BY c.idcorso")
             corsi = conn.execute(s, cf = current_user.get_id())
             lista_corsi = []
             for c in corsi:
@@ -594,7 +594,7 @@ def area_cliente():
                     conn.execute(s, cf = current_user.get_id())
                 conn.close()
                 return redirect(url_for('area_riservata'))
-            s = text("SELECT c.Idcorso, c.Titolo, u.Nome, u.Cognome, c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine FROM utenti u NATURAL JOIN corsi c JOIN iscrizioni i USING(idcorso) WHERE i.CF =:cf AND c.datafine > CURDATE()")
+            s = text("SELECT c.Idcorso, c.Titolo, u.Nome, u.Cognome, c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine, c.Sospeso FROM utenti u NATURAL JOIN corsi c JOIN iscrizioni i USING(idcorso) WHERE i.CF =:cf AND c.datafine > CURDATE()")
             corsi = conn.execute(s, cf = current_user.get_id())
             lista_corsi = []
             for c in corsi:
@@ -679,7 +679,7 @@ def altri_corsi():
                 return redirect(url_for('area_riservata'))
         try:
             conn = engine.connect()
-            s = text("SELECT c.Idcorso, c.Titolo, u.Nome, u.Cognome, c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine FROM corsi c NATURAL JOIN utenti u JOIN locali l USING(idlocale) WHERE l.idpalestra =:idpalestra AND :cf NOT IN (SELECT i.CF FROM iscrizioni i WHERE i.idcorso = c.idcorso) AND c.datafine > CURDATE()")
+            s = text("SELECT c.Idcorso, c.Titolo, u.Nome, u.Cognome, c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine, c.Sospeso FROM corsi c NATURAL JOIN utenti u JOIN locali l USING(idlocale) WHERE l.idpalestra =:idpalestra AND :cf NOT IN (SELECT i.CF FROM iscrizioni i WHERE i.idcorso = c.idcorso) AND c.datafine > CURDATE()")
             corsi = conn.execute(s, idpalestra = current_user.get_palestra(), cf = current_user.get_id())
             conn.close()
             lista_corsi = []
@@ -805,7 +805,7 @@ def prenotazioni():
     if (current_user.get_tipo() == 'Cliente'):
         try:
             conn = engine.connect()
-            s = text("SELECT c.idcorso, c.titolo FROM corsi c JOIN iscrizioni i USING (idcorso) WHERE i.cf =:cf")
+            s = text("SELECT c.idcorso, c.titolo FROM corsi c JOIN iscrizioni i USING (idcorso) WHERE i.cf =:cf AND c.sospeso = 'ATTIVO' ")
             corsi = conn.execute(s, cf = current_user.get_id())
             conn.close()
 

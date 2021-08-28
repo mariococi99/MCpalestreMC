@@ -1,6 +1,14 @@
 {% extends "layout.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
+{% block head %}
+<style>
+    .sospeso {
+        color: red;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <div class="jumbotron">
@@ -22,6 +30,13 @@
                 {{c['Descrizione']}}
             </p>
         </div>
+        {% if c['Sospeso'] == 'SOSPESO' %}
+        <div class="col-md-6 sospeso">
+            <p>
+                Questo corso e' stato sospeso per ragioni Covid-19.
+            </p>
+        </div>
+        {% endif %}
         <form class="form form-horizontal" action="" method="post">
             {% for field, errors in form.errors.items() %}
             {{ ', '.join(errors) }}
@@ -32,5 +47,4 @@
     </div>
 </div>
 {% endfor %}
-
-    {% endblock %}
+{% endblock %}
