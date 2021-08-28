@@ -1,8 +1,10 @@
 """
 Questi import servono per far funzionare interamente l'applicazione web
 """
-from datetime import datetime
-from flask import render_template, url_for, request, flash, session, redirect, Blueprint
+import datetime
+from datetime import *
+import calendar
+from flask import render_template, url_for, request, flash, session, redirect
 from flask_bootstrap import Bootstrap
 from MCpalestreMC import app
 from MCpalestreMC.forms import *
@@ -83,6 +85,42 @@ def is_logged():
     return 'false'
 
 """
+Questa funzione serve per ricavare tutte le date disponibili tra due
+date iniziali e finali, dato un certo giorno della settimana.
+Il formato delle date è %YYYY-%MM-%DD
+"""
+def date_disponibili(inizio, fine, giorno):
+    date = []
+    days_week = ['Lunedì', 'Martedi', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
+    data = datetime.strptime(inizio, '%Y-%m-%d').date()
+
+    while str(days_week[data.weekday()]) != giorno:
+        data = data + timedelta(days = 1)
+
+    while str(data) <= fine :
+        date.append(data)
+        data = data + timedelta(weeks = 1)
+
+    return date
+
+"""
+"""
+def date_rimanenti(origine, rimozione):
+    date = []
+    for i in origine:
+        date.append(str(i))
+
+    date_finali = []
+    for i in date:
+        if i not in rimozione:
+            date_finali.append(datetime.strptime(i, '%Y-%m-%d').date())
+
+    for i in date_finali:
+        if str(i) <= today:
+            date_finali.remove(i)
+    return date_finali
+
+"""
 Funzione che serve per il corretto funzionamento dell'autenticazione.
 """
 @login_manager.user_loader
@@ -95,7 +133,7 @@ def load_user (user_cf):
     return User(user.cf, user.nome, user.cognome, user.email, user.numero, user.password, user.tampone, user.tipo, user.idpalestra)
 
 """
-La funzione home ritorna il rendering della pagina principale/iniziale
+La funzione home ritorna il rendering della pagina principale/iniziale home
 """
 @app.route('/', methods = ['GET', 'POST'])
 @app.route('/home', methods = ['GET', 'POST'])
@@ -107,18 +145,28 @@ def home():
         title ='Home page',
         year = datetime.now().year,
     )
-
+"""
+La funzione about ritorna il rendering della pagina about
+"""
 @app.route('/about', methods = ['GET', 'POST'])
 def about():
     """Renders the about page."""
     return render_template(
         'about.html',
         is_logged = is_logged(),
-        title='About',
-        year=datetime.now().year,
-        message='Your application description page.'
+        title = 'About',
+        year = datetime.now().year,
+        message = 'Your application description page.'
     )
-
+"""
+Se non viene premuto il pulsante di invio, la funzione renderizzerà l'html della stessa.
+Quando il form viene inviato, si prendono i campi del codice fiscale e si chiede alla basi di dati
+un utente con codice fiscale uguale e password uguale. Se i campi corrispondono entrambi, si instanzia
+una classe User con tutti i dati dell'utente, (che saranno utili per tutta la durata dell'utilizzo del sito),
+poi si crea l'engine per l'utente; fatto ciò ci sarà il redirect dell'area riservata.
+Se codice fiscale o password non coincidono con quelli del dbms o di errore nel try, 
+la pagina di login vien ricaricata.
+"""
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     global engine
@@ -126,7 +174,7 @@ def login():
     if form.is_submitted():
         result = request.form
         try:
-            cf = result['cf']
+            cf = result['cf'].upper()
             password = result['password']
 
             conn = engine.connect()
@@ -149,10 +197,15 @@ def login():
         "login.html",
         is_logged = is_logged(),
         title = 'Login',
-        year=datetime.now().year,
-        form=form
+        year = datetime.now().year,
+        form = form
         ) 
 
+"""
+Quando un utente autenticato vuole fare logout, premera' l'input "Logout" e verra'
+rimandato alla home page, per la quale non serve autenticazione. Si fa riferimento
+all'engine globale e si richiama flask-login per fare il logout.
+"""
 @app.route('/logout', methods=['GET', 'POST'])
 @login_required
 def logout():
@@ -161,13 +214,21 @@ def logout():
     logout_user()
     return redirect(url_for('home')) 
 
+"""
+La funzione renderizza il template della pagina in caso non ci sia alcun invio.
+In alternativa, prende i parametri che serviranno alla registrazione dell'utente,
+settando una transazione di livello serializable. Si chiede alla base di dati di 
+ritornare un utente con cf identico a quello passato. Se non si ritorna niente,
+si fa il commit e si ristampa la stessa pagina, sennò si inserisce il neo utente
+nella tabella dandogli i privilegi giusti, poi si va alla pagina di login.
+"""
 @app.route('/registrazione', methods=['GET', 'POST'])
 def registrazione():
     form = RegistrationForm()
     if form.is_submitted():
         result = request.form
         try:
-            cf = result['cf']
+            cf = result['cf'].upper()
             nome = result['nome']
             cognome = result['cognome']
             email = result['email']
@@ -210,8 +271,8 @@ def registrazione():
         "registrazione.html",
         is_logged = is_logged(),
         title = 'Registrazione',
-        year=datetime.now().year,
-        form=form
+        year = datetime.now().year,
+        form = form
         )
 
 @app.route('/registra_istruttore', methods=['GET', 'POST'])
@@ -267,7 +328,7 @@ def registra_istruttore():
                 "registra_istruttore.html",
                 is_logged = is_logged(),
                 title = 'Registra istruttore',
-                year=datetime.now().year,
+                year = datetime.now().year,
                 form = form
             )
         except:
@@ -392,9 +453,9 @@ def palestre():
     return render_template(
         'palestre.html',
         is_logged = is_logged(),
-        title='Palestre',
-        year=datetime.now().year,
-        message='Your application description page.',
+        title = 'Palestre',
+        year = datetime.now().year,
+        message = 'Your application description page.',
         palestre = lista_palestre
     )
 
@@ -403,7 +464,7 @@ def corsi():
     lista_corsi = []
     try:
         conn = engine.connect()
-        s = text("SELECT c.Idcorso, c.Titolo, u.Nome, u.Cognome c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine FROM corsi c NATURAL JOIN utenti u")
+        s = text("SELECT c.Idcorso, c.Titolo, u.Nome, u.Cognome, c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine FROM corsi c NATURAL JOIN utenti u")
         corsi = conn.execute(s)
         conn.close()
         for c in corsi:
@@ -415,9 +476,9 @@ def corsi():
     return render_template(
             'corsi.html',
             is_logged = is_logged(),
-            title='Corsi',
-            year=datetime.now().year,
-            message='Your application description page.',
+            title = 'Corsi',
+            year = datetime.now().year,
+            message = 'Your application description page.',
             corsi = lista_corsi
         )
     
@@ -426,9 +487,9 @@ def abbonamenti():
     return render_template(
         'abbonamenti.html',
         is_logged = is_logged(),
-        title='Abbonamenti',
-        year=datetime.now().year,
-        message='Your application description page.'
+        title = 'Abbonamenti',
+        year = datetime.now().year,
+        message = 'Your application description page.'
     )
 
 @app.route('/area_gestore', methods = ['GET'])
@@ -443,9 +504,9 @@ def area_gestore():
             return render_template(
                 'area_gestore.html',
                 is_logged = is_logged(),
-                title='Area riservata | Gestore',
-                year=datetime.now().year,
-                message='Your application description page.',
+                title = 'Area riservata | Gestore',
+                year = datetime.now().year,
+                message = 'Your application description page.',
                 palestra = palestra
             )
         except:
@@ -460,7 +521,7 @@ def area_gestore():
 def area_istruttore():
     if (current_user.get_tipo() == 'Istruttore'):
         form1 = CovidForm()
-        form2 = SubscriptionForm()
+        form2 = DeleteCourseForm()
         try:
             conn = engine.connect()
             conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
@@ -483,7 +544,7 @@ def area_istruttore():
                     conn.execute(s, cf = current_user.get_id())
                 conn.close()
                 return redirect(url_for('area_riservata'))
-            s=text("SELECT c.Idcorso, c.Titolo, c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine, COUNT(i.cf) AS Personeiscritte FROM corsi c LEFT JOIN iscrizioni i ON c.idcorso = i.idcorso WHERE c.CF =:cf GROUP BY c.idcorso")
+            s = text("SELECT c.Idcorso, c.Titolo, c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine, COUNT(i.cf) AS Personeiscritte FROM corsi c LEFT JOIN iscrizioni i ON c.idcorso = i.idcorso WHERE c.CF =:cf AND c.datafine > CURDATE() GROUP BY c.idcorso")
             corsi = conn.execute(s, cf = current_user.get_id())
             lista_corsi = []
             for c in corsi:
@@ -492,9 +553,9 @@ def area_istruttore():
             return render_template(
                 'area_istruttore.html',
                 is_logged = is_logged(),
-                title='Area riservata | Istruttore',
-                year=datetime.now().year,
-                message='Your application description page.',
+                title = 'Area riservata | Istruttore',
+                year = datetime.now().year,
+                message = 'Your application description page.',
                 corsi = lista_corsi,
                 form1 = form1,
                 form2 = form2
@@ -510,7 +571,7 @@ def area_istruttore():
 def area_cliente():
     if (current_user.get_tipo() == 'Cliente'):
         form1 = CovidForm()
-        form2 = SubscriptionForm()
+        form2 = UnsubscriptionForm()
         try:
             conn = engine.connect()
             conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
@@ -533,7 +594,7 @@ def area_cliente():
                     conn.execute(s, cf = current_user.get_id())
                 conn.close()
                 return redirect(url_for('area_riservata'))
-            s=text("SELECT c.Idcorso, c.Titolo, u.Nome, u.Cognome, c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine FROM utenti u NATURAL JOIN corsi c JOIN iscrizioni i USING(idcorso) WHERE i.CF =:cf")
+            s = text("SELECT c.Idcorso, c.Titolo, u.Nome, u.Cognome, c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine FROM utenti u NATURAL JOIN corsi c JOIN iscrizioni i USING(idcorso) WHERE i.CF =:cf AND c.datafine > CURDATE()")
             corsi = conn.execute(s, cf = current_user.get_id())
             lista_corsi = []
             for c in corsi:
@@ -542,9 +603,9 @@ def area_cliente():
             return render_template(
                 'area_cliente.html',
                 is_logged = is_logged(),
-                title='Area riservata | Cliente',
-                year=datetime.now().year,
-                message='Your application description page.',
+                title = 'Area riservata | Cliente',
+                year = datetime.now().year,
+                message = 'Your application description page.',
                 corsi = lista_corsi,
                 form1 = form1,
                 form2 = form2
@@ -612,13 +673,14 @@ def altri_corsi():
                 conn.close()
                 return redirect(url_for('altri_corsi'))
             except:
+                conn.execute("ROLLBACK")
                 conn.close()
                 flash('Qualcosa è andato storto', 'error')
                 return redirect(url_for('area_riservata'))
         try:
             conn = engine.connect()
-            s = text("SELECT c.Idcorso, c.Titolo, u.Nome, u.Cognome, c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine FROM corsi c NATURAL JOIN utenti u WHERE :cf NOT IN (SELECT i.CF FROM iscrizioni i WHERE i.idcorso = c.idcorso)")
-            corsi = conn.execute(s, cf = current_user.get_id())
+            s = text("SELECT c.Idcorso, c.Titolo, u.Nome, u.Cognome, c.Descrizione, c.Idlocale, c.Giorno, c.Orarioinizio, c.Datainizio, c.Datafine FROM corsi c NATURAL JOIN utenti u JOIN locali l USING(idlocale) WHERE l.idpalestra =:idpalestra AND :cf NOT IN (SELECT i.CF FROM iscrizioni i WHERE i.idcorso = c.idcorso) AND c.datafine > CURDATE()")
+            corsi = conn.execute(s, idpalestra = current_user.get_palestra(), cf = current_user.get_id())
             conn.close()
             lista_corsi = []
             for c in corsi:
@@ -643,15 +705,17 @@ def altri_corsi():
 @app.route('/crea_corso', methods = ['GET', 'POST'])
 @login_required
 def crea_corso():
-    if (current_user.get_tipo() == 'Istruttore' or current_user.get_tipo() == 'Gestore'):
+    if (current_user.get_tipo() == 'Istruttore'):
         try:
             conn = engine.connect()
             s = text("SELECT idlocale FROM locali WHERE idpalestra =:idpalestra")
             idlocali = conn.execute(s, idpalestra = current_user.get_palestra())
+            conn.close()
             locali = []
             for l in idlocali:
                 locali.append(l[0])
             form = CourseCreationForm(locali)
+
             if form.is_submitted():
                 result = request.form
                 titolo = result['titolo']
@@ -661,13 +725,35 @@ def crea_corso():
                 giorno = result['giorno']
                 orarioinizio = result['orarioInizio']
                 idlocale = result['idLocale']
-                #to change
-                s = text("INSERT INTO corsi (titolo, descrizione, idlocale, cf) VALUES(:titolo, :descrizione, :idlocale, :cf)")
-                conn.execute(s, titolo = titolo, descrizione = descrizione, idlocale = idlocale, cf = current_user.get_id())
-                conn.close()
-                flash('Nuovo corso aggiunto!')
-                return redirect(url_for('area_riservata'))
-            conn.close()    
+                try:
+                    conn = engine.connect()
+                    conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE") #potrebbe non essere serializable, ma un altro livello di isolamento
+                    conn.execute("START TRANSACTION")
+
+                    s = text("SELECT c.giorno, c.orarioinizio FROM corsi c WHERE c.idlocale =:idlocale AND ((:datainizio BETWEEN c.datainizio AND c.datafine) OR (:datafine BETWEEN c.datainizio AND c.datafine))")
+                    orari = conn.execute(s, idlocale = idlocale, datainizio = datainizio, datafine = datafine)
+                    lista_orari = []
+                    for o in orari:
+                        lista_orari.append(o)
+
+                    selezionato = (giorno, orarioinizio)
+
+                    if selezionato in lista_orari:
+                        conn.close()
+                        flash('Locale già occupato per il giorno e la data selezionati. Scegliere un altro orario o giorno.', 'error')
+                        return redirect(url_for('crea_corso'))
+                
+                    s = text("INSERT INTO corsi (titolo, descrizione, idlocale, datainizio, datafine, giorno, orarioinizio, cf) VALUES(:titolo, :descrizione, :idlocale, :datainizio, :datafine, :giorno, :orarioinizio, :cf)")
+                    conn.execute(s, titolo = titolo, descrizione = descrizione, idlocale = idlocale, datainizio = datainizio, datafine = datafine, giorno = giorno, orarioinizio = orarioinizio, cf = current_user.get_id())
+                    conn.execute("COMMIT")
+                    conn.close()
+                    return redirect(url_for('area_riservata'))
+                except:
+                    conn.execute("ROLLBACK")
+                    conn.close()
+                    flash('Non è stato possibile trovare i locali', 'error')
+                    return redirect(url_for('area_riservata'))
+                
             return render_template(
                 'crea_corso.html',
                 is_logged = is_logged(),
@@ -697,7 +783,6 @@ def crea_locale():
                 s = text("INSERT INTO locali (mq, personemax, idpalestra) VALUES(:mq, :personemax, :idpalestra)")
                 conn.execute(s, mq = mq, personemax = personemax, idpalestra = current_user.get_palestra())
                 conn.close()
-                flash('Nuovo locale aggiunto!')
                 return redirect(url_for('area_riservata'))
             except:
                 conn.close()
@@ -715,12 +800,119 @@ def crea_locale():
         return redirect(url_for('home'))
 
 
-@app.route('/dettagli_palestra', methods = ['GET', 'POST'])
-def dettagli_palestra():
-    return render_template(
-        'dettagli_palestra.html',
-        is_logged = is_logged(),
-        title='Dettagli palestra',
-        year=datetime.now().year,
-        message='Your application description page.'
-    )
+@app.route('/prenotazioni', methods = ['GET', 'POST'])
+def prenotazioni():
+    if (current_user.get_tipo() == 'Cliente'):
+        try:
+            conn = engine.connect()
+            s = text("SELECT c.idcorso, c.titolo FROM corsi c JOIN iscrizioni i USING (idcorso) WHERE i.cf =:cf")
+            corsi = conn.execute(s, cf = current_user.get_id())
+            conn.close()
+
+            lista_corsi = []
+            for c in corsi:
+                t = str(c['idcorso']) + ' - ' + str(c['titolo'])
+                lista_corsi.append(t)
+
+            form = BookingForm(lista_corsi)
+
+            if form.is_submitted():
+                result = request.form
+                corso = result['corso'].split(' ')
+                idcorso = corso[0]
+
+                if result.get("ChooseDate", False):
+                    conn = engine.connect()
+
+                    s = text("SELECT c.datainizio, c.datafine, c.giorno FROM corsi c WHERE c.idcorso =:idcorso ")
+                    dati_corso = conn.execute(s, idcorso = idcorso).fetchone()
+
+                    s = text("SELECT p.data, l.personemax, COUNT(*) AS numeropersone FROM locali l NATURAL JOIN corsi c JOIN prenotazioni p USING(idcorso) WHERE c.idcorso =:idcorso GROUP BY p.data HAVING numeropersone >= l.personemax")
+                    date_altri = conn.execute(s, idcorso = idcorso)
+                    s = text("SELECT p.data FROM corsi c JOIN prenotazioni p USING(idcorso) WHERE c.idcorso =:idcorso AND p.cf =:cf")
+                    date_mie = conn.execute(s, idcorso = idcorso, cf = current_user.get_id())
+                    conn.close()
+
+                    datainizio = dati_corso['datainizio']
+                    datafine = dati_corso['datafine']
+                    giorno = dati_corso['giorno']
+
+                    lista = []
+                    for l in date_altri:
+                        lista.append(str(l['data']))
+                    for l in date_mie:
+                        lista.append(str(l['data']))
+
+                    date = date_disponibili(str(datainizio), str(datafine), str(giorno))
+
+                    date = date_rimanenti(date, lista)
+                    
+                    if len(date) == 0:
+                        flash('Tutte le date sono già prenotate, scegliere un altro corso','error')
+                        return redirect(url_for('prenotazioni'))
+
+                    form.data.choices = date
+
+                else:
+                    data = result['data']
+
+                    conn = engine.connect()
+                    conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+                    conn.execute("START TRANSACTION")
+                    s = text("INSERT INTO prenotazioni (cf, idcorso, data) VALUES(:cf, :idcorso, :data)")
+                    conn.execute(s, cf = current_user.get_id(), idcorso = idcorso, data = data)
+                    conn.close()
+
+            return render_template(
+                'prenotazioni.html',
+                is_logged = is_logged(),
+                title = 'Dettagli palestra',
+                year = datetime.now().year,
+                message = 'Your application description page.',
+                form = form
+            )
+        except:
+            conn.close()
+            flash('Non è stato possibile trovare i corsi', 'error')
+            return redirect(url_for('area_riservata'))
+    
+    return redirect(url_for('home'))
+
+@app.route('/mie_prenotazioni', methods = ['GET', 'POST'])
+@login_required
+def mie_prenotazioni():
+    if (current_user.get_tipo() == 'Cliente'):
+        form = DeleteBookingForm()
+        try:
+            conn = engine.connect()
+            conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+            conn.execute("START TRANSACTION")
+            if form.is_submitted():
+                result = request.form
+                idprenotazione = result['idprenotazione']
+                s = text("DELETE FROM prenotazioni WHERE idprenotazione =:idprenotazione")
+                conn.execute(s, idprenotazione = idprenotazione)
+                conn.execute("COMMIT")
+                conn.close()
+                return redirect(url_for('mie_prenotazioni'))
+            
+            s = text("SELECT c.Titolo, p.Idprenotazione, p.Data, c.Orarioinizio FROM corsi c JOIN prenotazioni p USING(idcorso) WHERE p.CF =:cf AND p.data >= CURDATE()")
+            prenotazioni = conn.execute(s, cf = current_user.get_id())
+            lista_prenotazioni = []
+            for p in prenotazioni:
+                lista_prenotazioni.append(p)
+            conn.close()
+            return render_template(
+                'mie_prenotazioni.html',
+                is_logged = is_logged(),
+                title = 'Mie prenotazioni',
+                year = datetime.now().year,
+                message = 'Your application description page.',
+                prenotazioni = lista_prenotazioni,
+                form = form
+            )
+        except:
+            conn.close()
+            flash('Errore durante la richiesta dei dati dei corsi','error')
+            return redirect(url_for('area_riservata'))
+    return redirect(url_for('home'))

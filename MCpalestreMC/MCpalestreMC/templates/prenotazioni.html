@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+{% block content %}
+
+<div class="jumbotron">
+    <h2>Prenotazioni</h2>
+    <p class="lead">Per entrare nell'area di backoffice devi registrarti.</p>
+</div>
+
+<form class="form form-horizontal" action="" method="post">
+    {% for field, errors in form.errors.items() %}
+    {{ ', '.join(errors) }}
+    {% endfor %}
+    {{wtf.form_field(form.corso, form_type="horizontal")}}
+    <input id="add-new-field" class="btn btn-default col-lg-offset-2" type="submit" name="ChooseDate" value="Scegli data" />
+    <br /><br /><hr />
+    {{wtf.form_field(form.data, form_type="horizontal")}}
+    {{wtf.form_field(form.bookingSubmit, form_type="horizontal", button_map={'bookingSubmit': 'success'})}}
+</form>
+
+{% endblock %}

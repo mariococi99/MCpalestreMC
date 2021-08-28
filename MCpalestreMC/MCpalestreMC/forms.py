@@ -65,7 +65,7 @@ class ProfileModificationForm(FlaskForm):
 
 class CovidForm(FlaskForm):
     covid = BooleanField('Covid-19')
-    covidSubmit = SubmitField('Invia')
+    covidSubmit = SubmitField('Segnala')
 
 class CourseCreationForm(FlaskForm):
     titolo = StringField('Titolo')
@@ -82,4 +82,23 @@ class CourseCreationForm(FlaskForm):
         self['idLocale'].choices = locali
 
 class SubscriptionForm(FlaskForm):
-    subscriptionSubmit = SubmitField('Invia')
+    subscriptionSubmit = SubmitField('Iscriviti')
+
+class UnsubscriptionForm(FlaskForm):
+    unsubscriptionSubmit = SubmitField('Disiscriviti')
+
+class DeleteCourseForm(FlaskForm):
+    deleteCourseSubmit = SubmitField('Cancella')
+
+class BookingForm(FlaskForm):
+    corso = SelectField('Corso', [])
+    data = SelectField('Data prenotazione', [])
+    bookingSubmit = SubmitField('Prenota')
+
+    def __init__(self, corsi = None, date = None, **kwargs):
+        super().__init__(**kwargs)
+        self['corso'].choices = corsi
+        self['data'].choices = date
+
+class DeleteBookingForm(FlaskForm):
+    deleteBookingSubmit = SubmitField('Cancellami')

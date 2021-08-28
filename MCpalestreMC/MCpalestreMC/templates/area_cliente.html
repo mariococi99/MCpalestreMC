@@ -8,6 +8,8 @@
     <p class="lead">Per entrare nell'area di backoffice devi registrarti.</p>
     <p><a href="{{ url_for('modifica_profilo') }}" class="btn btn-primary btn-large">Modifica profilo utente &raquo;</a></p>
     <p><a href="{{ url_for('altri_corsi') }}" class="btn btn-primary btn-large">Corsi a cui non sei iscritto &raquo;</a></p>
+    <p><a href="{{ url_for('prenotazioni') }}" class="btn btn-primary btn-large">Prenotati per i tuoi corsi &raquo;</a></p>
+    <p><a href="{{ url_for('mie_prenotazioni') }}" class="btn btn-warning btn-large">Ecco qui le tue prenotazioni &raquo;</a></p>
 </div>
 
 <form class="form form-horizontal" action="" method="post">
@@ -38,7 +40,7 @@
             {{ ', '.join(errors) }}
             {% endfor %}
             <input type="hidden" name="idcorso" value="{{c['Idcorso']}}" />
-            {{wtf.quick_form(form2, form_type="horizontal", button_map={'subscriptionSubmit': 'danger'})}}
+            {{wtf.quick_form(form2, form_type="horizontal", button_map={'unsubscriptionSubmit': 'danger'})}}
         </form>
     </div>
 </div>

@@ -58,8 +58,10 @@
     <Content Include="MCpalestreMC\templates\crea_locale.html" />
     <Content Include="MCpalestreMC\templates\dettagli_palestra.html" />
     <Content Include="MCpalestreMC\templates\login.html" />
+    <Content Include="MCpalestreMC\templates\mie_prenotazioni.html" />
     <Content Include="MCpalestreMC\templates\modifica_profilo.html" />
     <Content Include="MCpalestreMC\templates\palestre.html" />
+    <Content Include="MCpalestreMC\templates\prenotazioni.html" />
     <Content Include="MCpalestreMC\templates\registrazione.html">
       <SubType>Code</SubType>
     </Content>

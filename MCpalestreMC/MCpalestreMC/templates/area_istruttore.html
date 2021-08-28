@@ -37,7 +37,7 @@
             {{ ', '.join(errors) }}
             {% endfor %}
             <input type="hidden" name="idcorso" value="{{c['Idcorso']}}" />
-            {{wtf.quick_form(form2, form_type="horizontal", button_map={'subscriptionSubmit': 'danger'})}}
+            {{wtf.quick_form(form2, form_type="horizontal", button_map={'deleteCourseSubmit': 'danger'})}}
         </form>
     </div>
 </div>
