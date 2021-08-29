@@ -72,6 +72,11 @@ class User (UserMixin):
     """
     def get_palestra(self):
         return self.palestra
+    """
+    Questa funzione ritorna l'ultimo tampone dell'utente
+    """
+    def get_tampone(self):
+        return self.tampone
 
 
 """
@@ -114,11 +119,15 @@ def date_rimanenti(origine, rimozione):
     for i in date:
         if i not in rimozione:
             date_finali.append(datetime.strptime(i, '%Y-%m-%d').date())
+    
+    date_definitive = []
 
+    todayf = datetime.strptime(today, '%Y-%m-%d').date()
     for i in date_finali:
-        if str(i) <= today:
-            date_finali.remove(i)
-    return date_finali
+        if i > todayf:
+            date_definitive.append(datetime.strptime(str(i), '%Y-%m-%d').date())
+
+    return date_definitive
 
 """
 Funzione che serve per il corretto funzionamento dell'autenticazione.
@@ -661,9 +670,9 @@ def altri_corsi():
     if (current_user.get_tipo() == 'Cliente'):
         form = SubscriptionForm()
         if form.is_submitted():
+            result = request.form
+            idcorso = result['idcorso']
             try:
-                result = request.form
-                idcorso = result['idcorso']
                 conn = engine.connect()
                 conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
                 conn.execute("START TRANSACTION")
@@ -803,6 +812,9 @@ def crea_locale():
 @app.route('/prenotazioni', methods = ['GET', 'POST'])
 def prenotazioni():
     if (current_user.get_tipo() == 'Cliente'):
+        if(current_user.get_tampone() == 'Positivo'):
+            flash('Sei positivo, non puoi prenotarti','error')
+            return redirect(url_for('area_riservata'))
         try:
             conn = engine.connect()
             s = text("SELECT c.idcorso, c.titolo FROM corsi c JOIN iscrizioni i USING (idcorso) WHERE i.cf =:cf AND c.sospeso = 'ATTIVO' ")
