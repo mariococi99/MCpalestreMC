@@ -163,9 +163,9 @@ def about():
     return render_template(
         'about.html',
         is_logged = is_logged(),
-        title = 'About',
+        title = 'La nostra storia - About us',
         year = datetime.now().year,
-        message = 'Your application description page.'
+        message = 'MCpalestreMC nasce come un progetto per la materia base di dati. La proposta di una serie di palestre innovative, nata dal genio di Bill Gates e Topo Gigio nel 2021, ha dato vita a numerose palestre in giro per il mondo che allenano ogni giorno persone con una grande forza di volontà. La nostra storia è breve, ma il nostro cuore è grande.'
     )
 """
 Se non viene premuto il pulsante di invio, la funzione renderizzerà l'html della stessa.
@@ -464,7 +464,7 @@ def palestre():
         is_logged = is_logged(),
         title = 'Palestre',
         year = datetime.now().year,
-        message = 'Your application description page.',
+        message = 'Le nostre palestre',
         palestre = lista_palestre
     )
 
@@ -487,7 +487,7 @@ def corsi():
             is_logged = is_logged(),
             title = 'Corsi',
             year = datetime.now().year,
-            message = 'Your application description page.',
+            message = 'Vedi i nostri corsi',
             corsi = lista_corsi
         )
     
@@ -498,7 +498,7 @@ def abbonamenti():
         is_logged = is_logged(),
         title = 'Abbonamenti',
         year = datetime.now().year,
-        message = 'Your application description page.'
+        message = 'Abbonamenti belli'
     )
 
 @app.route('/area_gestore', methods = ['GET'])
@@ -515,7 +515,7 @@ def area_gestore():
                 is_logged = is_logged(),
                 title = 'Area riservata | Gestore',
                 year = datetime.now().year,
-                message = 'Your application description page.',
+                message = 'Area gestore',
                 palestra = palestra
             )
         except:
@@ -564,7 +564,7 @@ def area_istruttore():
                 is_logged = is_logged(),
                 title = 'Area riservata | Istruttore',
                 year = datetime.now().year,
-                message = 'Your application description page.',
+                message = 'Area istruttore',
                 corsi = lista_corsi,
                 form1 = form1,
                 form2 = form2
@@ -614,7 +614,7 @@ def area_cliente():
                 is_logged = is_logged(),
                 title = 'Area riservata | Cliente',
                 year = datetime.now().year,
-                message = 'Your application description page.',
+                message = 'Area cliente',
                 corsi = lista_corsi,
                 form1 = form1,
                 form2 = form2
@@ -658,9 +658,9 @@ def modifica_profilo():
     return render_template(
         "modifica_profilo.html",
         is_logged = is_logged(),
-        title = 'Modifica profilo cliente',
+        title = 'Modifica profilo',
         year = datetime.now().year,
-        message = 'Il cliente desidera modificarsi',
+        message = 'Modifica profilo',
         form = form
     )
 
@@ -700,7 +700,7 @@ def altri_corsi():
                 is_logged = is_logged(),
                 title = 'Altri corsi',
                 year = datetime.now().year,
-                message = 'Your application description page.',
+                message = 'Ecco i corsi a cui non sei iscritto:',
                 corsi = lista_corsi,
                 form = form
             )
@@ -768,7 +768,7 @@ def crea_corso():
                 is_logged = is_logged(),
                 title = 'Crea corso',
                 year = datetime.now().year,
-                message = 'Your application description page.',
+                message = 'Crea corso',
                 form = form
             )
         except:
@@ -802,7 +802,7 @@ def crea_locale():
             is_logged = is_logged(),
             title = 'Crea locale',
             year = datetime.now().year,
-            message = 'Your application description page.',
+            message = 'Aggiungi un nuovo locale',
             form = form
         )
     else:
@@ -880,7 +880,7 @@ def prenotazioni():
                 is_logged = is_logged(),
                 title = 'Dettagli palestra',
                 year = datetime.now().year,
-                message = 'Your application description page.',
+                message = 'Prenotazioni',
                 form = form
             )
         except:
@@ -919,7 +919,7 @@ def mie_prenotazioni():
                 is_logged = is_logged(),
                 title = 'Mie prenotazioni',
                 year = datetime.now().year,
-                message = 'Your application description page.',
+                message = 'Ecco le tue prenotazioni',
                 prenotazioni = lista_prenotazioni,
                 form = form
             )
