@@ -4,7 +4,7 @@ Questi import servono per far funzionare interamente l'applicazione web
 import datetime
 from datetime import *
 import calendar
-from flask import render_template, url_for, request, flash, session, redirect
+from flask import render_template, url_for, request, flash, session, redirect, Blueprint
 from flask_bootstrap import Bootstrap
 from MCpalestreMC import app
 from MCpalestreMC.forms import *
@@ -19,7 +19,7 @@ Setting che inizializzano la secret key flash
 app.config['SECRET_KEY'] = 'bgit4y5394rjfienvtn8'
 login_manager = LoginManager()
 login_manager.init_app(app)
-bootstrap = Bootstrap(app) #Istanziamento della classe Bootstrap per
+bootstrap = Bootstrap(app)
 
 """
 Mi collego al dbms come utente anonimo
@@ -259,8 +259,7 @@ def registrazione():
                 return redirect(url_for('registrazione'))
 
             s = text("INSERT INTO utenti VALUES(:cf, :nome, :cognome, :email, :numero, :password, 'Negativo', 'Cliente', '1')")
-            rs = conn.execute (s, cf = cf, nome = nome, cognome = cognome, email = email, numero = numero, password = password)
-            
+            rs = conn.execute (s, cf = cf, nome = nome, cognome = cognome, email = email, numero = numero, password = generate_password_hash(password))
             s = text("create user :codice@'localhost' identified with mysql_native_password by :password")
             rs = conn.execute (s, codice = cf, password = password)
 
@@ -270,7 +269,7 @@ def registrazione():
             rs = conn.execute("FLUSH PRIVILEGES")
             conn.execute("COMMIT")
             conn.close() 
-            return redirect(url_for('login')) 
+            return redirect(url_for('area_riservata')) 
         except:
             conn.execute("ROLLBACK")
             conn.close()
@@ -391,10 +390,10 @@ def registra_gestore():
                         flash('Errore: codice fiscale già registrato','error')
                         return redirect(url_for('registra_gestore'))
 
-                    s = text("INSERT INTO palestre (titolo, indirizzo, email, telefono, cf) VALUES(:titolo, :indirizzo, :email, :telefono, :cf)")
-                    rs = conn.execute (s, titolo = palestra, indirizzo = indirizzo, email = emailPalestra, telefono = telefono, cf = cf)
+                    s = text("INSERT INTO palestre (titolo, indirizzo, email, telefono) VALUES(:titolo, :indirizzo, :email, :telefono)")
+                    rs = conn.execute (s, titolo = palestra, indirizzo = indirizzo, email = emailPalestra, telefono = telefono)
 
-                    s = text("SELECT idpalestra FROM palestre WHERE CF =:cf")
+                    s = text("SELECT l.idpalestra FROM locali l NATURAL JOIN corsi c WHERE CF =:cf")
                     idpalestra = conn.execute(s, cf = cf).fetchone()
 
                     for l in locali:
@@ -450,7 +449,7 @@ def palestre():
     lista_palestre = []
     try:
         conn = engine.connect()
-        s = text("SELECT p.Titolo, p.Indirizzo, p.Email, p.Telefono, u.Nome, u.Cognome FROM palestre p JOIN utenti u USING (cf)")
+        s = text("SELECT p.Titolo, p.Indirizzo, p.Email, p.Telefono, u.Nome, u.Cognome FROM palestre p NATURAL JOIN locali l JOIN corsi c USING(idlocale) JOIN utenti u ON u.cf = c.cf")
         palestre = conn.execute(s)
         conn.close()
         for p in palestre:
