@@ -22,11 +22,11 @@
         <div class="col-md-6">
             <h2><b>{{c['Titolo']}}</b></h2>
             <p>
-                Istruttore: {{c['Nome']}} {{c['Cognome']}}<br />
+                Istruttore: {{c['Nome']}} {{c['Cognome']}}<br/>
                 Locale: {{c['Idlocale']}}<br />
-                Periodo del corso: dal {{c['Datainizio']}} al {{c['Datafine']}}<br />
-                Giorno della settimana: {{c['Giorno']}}<br />
-                Orario: {{c['Orarioinizio']}}<br /><br />
+                Periodo del corso: dal {{c['Datainizio']}} al {{c['Datafine']}}<br/>
+                Giorno della settimana: {{c['Giorno']}}<br/>
+                Orario: {{c['Orarioinizio']}}<br/><br/>
                 {{c['Descrizione']}}
             </p>
         </div>
@@ -41,7 +41,7 @@
             {% for field, errors in form.errors.items() %}
             {{ ', '.join(errors) }}
             {% endfor %}
-            <input type="hidden" name="idcorso" value="{{c['Idcorso']}}" />
+            <input type="hidden" name="idcorso" value="{{c['Idcorso']}}"/>
             {{wtf.quick_form(form, form_type="horizontal", button_map={'subscriptionSubmit': 'success'})}}
         </form>
     </div>

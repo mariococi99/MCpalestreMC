@@ -14,8 +14,8 @@
     {{ ', '.join(errors) }}
     {% endfor %}
     {{wtf.form_field(form.corso, form_type="horizontal")}}
-    <input id="add-new-field" class="btn btn-default col-lg-offset-2" type="submit" name="ChooseDate" value="Scegli data" />
-    <br /><br /><hr />
+    <input id="add-new-field" class="btn btn-default col-lg-offset-2" type="submit" name="ChooseDate" value="Scegli data"/>
+    <br/><br/><hr/>
     {{wtf.form_field(form.data, form_type="horizontal")}}
     {{wtf.form_field(form.bookingSubmit, form_type="horizontal", button_map={'bookingSubmit': 'success'})}}
 </form>

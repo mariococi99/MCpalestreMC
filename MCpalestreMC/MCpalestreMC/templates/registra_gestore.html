@@ -20,7 +20,7 @@
     {{wtf.form_field(form.numero, form_type="horizontal")}}
     {{wtf.form_field(form.password, form_type="horizontal")}}
 
-    <br /><br /><hr />
+    <br/><br/><hr/>
 
     {{wtf.form_field(form.palestra, form_type="horizontal")}}
     {{wtf.form_field(form.indirizzo, form_type="horizontal")}}
@@ -31,9 +31,9 @@
         {% for field in form.locali %}
         {{wtf.form_field(field, form_type="horizontal")}}
         {% endfor %}
-        <br />
-        <input id="add-new-field" class="btn btn-default col-lg-offset-2 col-lg-10" type="submit" name="AddField" value="Aggiungi locale" />
-        <br /><br /><hr />
+        <br/>
+        <input id="add-new-field" class="btn btn-default col-lg-offset-2 col-lg-10" type="submit" name="AddField" value="Aggiungi locale"/>
+        <br/><br/><hr/>
     </div>
 
     {{wtf.form_field(form.gymManagerRegistrationSubmit, form_type="horizontal", button_map={'gymManagerRegistrationSubmit': 'success'})}}
