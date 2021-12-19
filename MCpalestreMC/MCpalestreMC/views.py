@@ -109,6 +109,7 @@ def date_disponibili(inizio, fine, giorno):
     return date
 
 """
+Questa funzione serve per eliminare eventuali date che non sono necessarie
 """
 def date_rimanenti(origine, rimozione):
     date = []
@@ -165,7 +166,7 @@ def about():
         is_logged = is_logged(),
         title = 'La nostra storia - About us',
         year = datetime.now().year,
-        message = 'MCpalestreMC nasce come un progetto per la materia base di dati. La proposta di una serie di palestre innovative, nata dal genio di Bill Gates e Topo Gigio nel 2021, ha dato vita a numerose palestre in giro per il mondo che allenano ogni giorno persone con una grande forza di volontà. La nostra storia è breve, ma il nostro cuore è grande.'
+        message = 'MCpalestreMC nasce come un progetto per la materia base di dati. La proposta di una serie di palestre innovative, nata dal genio di Bill Gates e Topo Gigio nel 2021, ha dato vita a numerose palestre in giro per il mondo che allenano ogni giorno persone e pokemon con una grande forza di volontà. La nostra storia è breve, ma il nostro cuore è grande.'
     )
 """
 Se non viene premuto il pulsante di invio, la funzione renderizzerà l'html della stessa.
@@ -282,7 +283,11 @@ def registrazione():
         year = datetime.now().year,
         form = form
         )
-
+"""
+La funzione serve ad inserire un nuovo utente di tipo istruttore.
+Si setta la transazione a livello serializable per avere a disposizione tutte le palestre, 
+poi tramite il form si registra un utente con ruolo istruttore in una delle palestre disponibili
+"""
 @app.route('/registra_istruttore', methods=['GET', 'POST'])
 @login_required
 def registra_istruttore():
@@ -346,7 +351,12 @@ def registra_istruttore():
             return redirect(url_for('registra_istruttore'))
         
     return redirect(url_for('home'))
-
+"""
+La funzione permette in primis di scrollare la pagina, data la quantità di Field.
+Si provvede ad inserire un gestore con le sue informazioni, quelle della sua nuova palestra e i locali in essa.
+Esiste un Button che permette di aggiungere locali, (che minimo devono essere 2).
+Alla fine delle operazioni, se corrette, si andrà a registrare il nuovo Gestore, la palestra e le nuove stanze.
+"""
 @app.route('/registra_gestore', methods=['GET', 'POST'])
 @login_required
 def registra_gestore():
@@ -380,7 +390,6 @@ def registra_gestore():
         
                     conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
                     conn.execute("START TRANSACTION")
-            
                     s = text("SELECT u.CF FROM utenti u WHERE u.CF =:cf")
                     id = conn.execute(s, cf = cf).fetchone()
             
@@ -392,10 +401,8 @@ def registra_gestore():
 
                     s = text("INSERT INTO palestre (titolo, indirizzo, email, telefono) VALUES(:titolo, :indirizzo, :email, :telefono)")
                     rs = conn.execute (s, titolo = palestra, indirizzo = indirizzo, email = emailPalestra, telefono = telefono)
-
-                    s = text("SELECT l.idpalestra FROM locali l NATURAL JOIN corsi c WHERE CF =:cf")
-                    idpalestra = conn.execute(s, cf = cf).fetchone()
-
+                    s = text("SELECT p.idpalestra FROM palestre p ORDER BY p.idpalestra DESC LIMIT 1")
+                    idpalestra = conn.execute(s, cf = cf).fetchone()[0]
                     for l in locali:
                         mq = l['mq'].data
                         personemax = l['personeMax'].data
@@ -403,14 +410,13 @@ def registra_gestore():
                         rs = conn.execute (s, mq = mq, personemax = personemax, idpalestra = idpalestra)
 
                     s = text("INSERT INTO utenti VALUES(:cf, :nome, :cognome, :email, :numero, :password, 'Negativo', 'Gestore', :idpalestra)")
-                    rs = conn.execute (s, cf = cf, nome = nome, cognome = cognome, email = email, numero = numero, password = password, palestra = idpalestra)
-            
+                    rs = conn.execute (s, cf = cf, nome = nome, cognome = cognome, email = email, numero = numero, password = password, idpalestra = idpalestra)
+
                     s = text("create user :codice@'localhost' identified with mysql_native_password by :password")
                     rs = conn.execute (s, codice = cf, password = password)
-
-                    s = text("GRANT Gestore to :codice@'localhost'")
+     
+                    s = text("GRANT Gestore to :codice@'localhost' WITH ADMIN OPTION")
                     rs = conn.execute(s, codice = cf)
-
                     rs = conn.execute("FLUSH PRIVILEGES")
                     conn.execute("COMMIT")
                     conn.close()
@@ -431,6 +437,10 @@ def registra_gestore():
             
     return redirect(url_for('home'))
 
+
+"""
+La funzione fa il redirect all'area riservata dell'utente in base al suo tipo
+"""
 @app.route('/area_riservata', methods=['GET', 'POST'])
 @login_required
 def area_riservata():
@@ -444,12 +454,16 @@ def area_riservata():
     else:
        return redirect(url_for('home'))
 
+
+"""
+La funzione recupera tutte le palestre create con dati del gestore che servono per una più corretta visualizzazione
+"""
 @app.route('/palestre', methods = ['GET'])
 def palestre():
     lista_palestre = []
     try:
         conn = engine.connect()
-        s = text("SELECT p.Titolo, p.Indirizzo, p.Email, p.Telefono, u.Nome, u.Cognome FROM palestre p NATURAL JOIN locali l JOIN corsi c USING(idlocale) JOIN utenti u ON u.cf = c.cf")
+        s = text("SELECT p.Titolo, p.Indirizzo, p.Email, p.Telefono, u.Nome, u.Cognome FROM palestre p JOIN utenti u ON p.idpalestra = u.idpalestra WHERE u.tipo = 'Gestore'")
         palestre = conn.execute(s)
         conn.close()
         for p in palestre:
@@ -467,6 +481,9 @@ def palestre():
         palestre = lista_palestre
     )
 
+"""
+La funzione andrà a recuperare tutte le informazioni relative ai corsi disponibili
+"""
 @app.route('/corsi', methods = ['GET'])
 def corsi():
     lista_corsi = []
@@ -489,7 +506,10 @@ def corsi():
             message = 'Vedi i nostri corsi',
             corsi = lista_corsi
         )
-    
+   
+"""
+La funzione renderizza alla pagina degli abbonamenti
+"""
 @app.route('/abbonamenti', methods = ['GET'])
 def abbonamenti():
     return render_template(
@@ -500,13 +520,16 @@ def abbonamenti():
         message = 'Abbonamenti belli'
     )
 
+"""
+La funzione, se si è gestori, stampa la propria area riservata e recupera le informazioni relative alla palestra
+"""
 @app.route('/area_gestore', methods = ['GET'])
 @login_required
 def area_gestore():
     if (current_user.get_tipo() == 'Gestore'):
         try:
             conn = engine.connect()
-            s=text("SELECT p.Titolo, p.Indirizzo, p.Email, p.Telefono, COUNT(u.tipo) AS Personeiscritte FROM palestre p LEFT JOIN utenti u USING (idpalestra) WHERE u.tipo = 'Cliente' AND p.idpalestra =:idpalestra ")
+            s=text("SELECT p.Titolo, p.Indirizzo, p.Email, p.Telefono, COUNT(u.tipo) AS Personeiscritte FROM palestre p LEFT JOIN utenti u USING (idpalestra) WHERE u.tipo = 'Cliente' AND p.idpalestra =:idpalestra")
             palestra = conn.execute(s, idpalestra = current_user.get_palestra()).fetchone()
             conn.close()
             return render_template(
@@ -523,7 +546,9 @@ def area_gestore():
             return redirect(url_for('home'))
     return redirect(url_for('home'))
     
-
+"""
+La funzione stampa l'area riservata dell'istruttore, dandogli la possibilità di eseguire alcune azioni 
+"""
 @app.route('/area_istruttore', methods = ['GET', 'POST'])
 @login_required
 def area_istruttore():
@@ -574,6 +599,10 @@ def area_istruttore():
             return redirect(url_for('home'))
     return redirect(url_for('home'))
 
+"""
+La funzione stampa l'area riservata del cliente, dandogli la possibilità di alcune azioni, tra cui quella di segnalare di avere 
+il covid 
+"""
 @app.route('/area_cliente', methods = ['GET', 'POST'])
 @login_required
 def area_cliente():
@@ -625,12 +654,15 @@ def area_cliente():
     else:
         return redirect(url_for('home'))
 
+"""
+La funzione permette di modificare l'email, il numero telefonico e la palestra a cui ogni utente è associato
+"""
 @app.route ('/modifica_profilo', methods=['GET', 'POST'])
 @login_required
 def modifica_profilo():
     try:
         conn = engine.connect()
-        conn.execute("SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED")
+        conn.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
         conn.execute("START TRANSACTION")
 
         s = text("SELECT idpalestra FROM palestre")
@@ -662,7 +694,9 @@ def modifica_profilo():
         message = 'Modifica profilo',
         form = form
     )
-
+"""
+La funzione permette di visionare i corsi a cui non si è iscritti e di iscriversi
+"""
 @app.route('/altri_corsi', methods = ['GET', 'POST'])
 @login_required
 def altri_corsi():
@@ -673,7 +707,7 @@ def altri_corsi():
             idcorso = result['idcorso']
             try:
                 conn = engine.connect()
-                conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+                conn.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
                 conn.execute("START TRANSACTION")
                 s = text("INSERT INTO iscrizioni VALUES (:idcorso, :cf)")
                 conn.execute(s, idcorso = idcorso, cf = current_user.get_id())
@@ -709,7 +743,9 @@ def altri_corsi():
             return redirect(url_for('area_riservata'))
     else:
         return redirect(url_for('home'))
-
+"""
+La funzione crea un nuovo corso: si ha bisogno del locale già creato dello slot orario disponibile e delle date di inizio e fine
+"""
 @app.route('/crea_corso', methods = ['GET', 'POST'])
 @login_required
 def crea_corso():
@@ -735,7 +771,7 @@ def crea_corso():
                 idlocale = result['idLocale']
                 try:
                     conn = engine.connect()
-                    conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE") #potrebbe non essere serializable, ma un altro livello di isolamento
+                    conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
                     conn.execute("START TRANSACTION")
 
                     s = text("SELECT c.giorno, c.orarioinizio FROM corsi c WHERE c.idlocale =:idlocale AND ((:datainizio BETWEEN c.datainizio AND c.datafine) OR (:datafine BETWEEN c.datainizio AND c.datafine))")
@@ -777,6 +813,9 @@ def crea_corso():
     else:
         return redirect(url_for('home'))
 
+"""
+La funzione permette di creare nuovi locali inserendo metri quadri e il numero massimo di persone
+"""
 @app.route('/crea_locale', methods = ['GET', 'POST'])
 @login_required
 def crea_locale():
@@ -807,7 +846,10 @@ def crea_locale():
     else:
         return redirect(url_for('home'))
 
-
+"""
+Se si è positivi non ci si può prenotare.
+Tramite le query si ottengono i corsi attualmente in svolgimento con possibilità di prenotazione.
+"""
 @app.route('/prenotazioni', methods = ['GET', 'POST'])
 def prenotazioni():
     if (current_user.get_tipo() == 'Cliente'):
@@ -889,6 +931,9 @@ def prenotazioni():
     
     return redirect(url_for('home'))
 
+"""
+La funzione permette di visionare le prenotazioni e di cancellarle tramite dei Button accurati.
+"""
 @app.route('/mie_prenotazioni', methods = ['GET', 'POST'])
 @login_required
 def mie_prenotazioni():
@@ -896,7 +941,7 @@ def mie_prenotazioni():
         form = DeleteBookingForm()
         try:
             conn = engine.connect()
-            conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+            conn.execute("SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED")
             conn.execute("START TRANSACTION")
             if form.is_submitted():
                 result = request.form
