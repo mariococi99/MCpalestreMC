@@ -14,7 +14,12 @@ class RegistrationForm(FlaskForm):
     email = EmailField('E-mail')
     numero = StringField('Numero telefonico')
     password = PasswordField('Password')
+    palestra = SelectField('Palestra', [])
     registrationSubmit = SubmitField('Invia')
+
+    def __init__(self, palestre = None, **kwargs):
+       super().__init__(**kwargs)
+       self['palestra'].choices = palestre
 
 class InstructorRegistrationForm(FlaskForm):
     cf = StringField('Codice fiscale')

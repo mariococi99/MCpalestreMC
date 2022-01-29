@@ -234,21 +234,26 @@ nella tabella dandogli i privilegi giusti, poi si va alla pagina di login.
 """
 @app.route('/registrazione', methods=['GET', 'POST'])
 def registrazione():
-    form = RegistrationForm()
-    if form.is_submitted():
-        result = request.form
-        try:
+    try:
+        conn = engine.connect()
+        conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+        conn.execute("START TRANSACTION")
+        s = text("SELECT idpalestra FROM palestre ")
+        idpalestre = conn.execute(s)
+        palestre = []
+        for p in idpalestre:
+            palestre.append(p[0])
+        form = RegistrationForm(palestre)
+        if form.is_submitted():
+            result = request.form
+
             cf = result['cf'].upper()
             nome = result['nome']
             cognome = result['cognome']
             email = result['email']
             numero = result['numero']
             password = result['password']
-
-            conn = engine.connect()
-
-            conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
-            conn.execute("START TRANSACTION")
+            palestra = result['palestra']
             
             s = text("SELECT u.CF FROM utenti u WHERE u.CF =:cf")
             id = conn.execute(s, cf = cf).fetchone()
@@ -259,8 +264,8 @@ def registrazione():
                 flash('Errore: codice fiscale già registrato','error')
                 return redirect(url_for('registrazione'))
 
-            s = text("INSERT INTO utenti VALUES(:cf, :nome, :cognome, :email, :numero, :password, 'Negativo', 'Cliente', '1')")
-            rs = conn.execute (s, cf = cf, nome = nome, cognome = cognome, email = email, numero = numero, password = generate_password_hash(password))
+            s = text("INSERT INTO utenti VALUES(:cf, :nome, :cognome, :email, :numero, :password, 'Negativo', 'Cliente', :palestra)")
+            rs = conn.execute (s, cf = cf, nome = nome, cognome = cognome, email = email, numero = numero, password = password, palestra = palestra)
             s = text("create user :codice@'localhost' identified with mysql_native_password by :password")
             rs = conn.execute (s, codice = cf, password = password)
 
@@ -268,21 +273,23 @@ def registrazione():
             rs = conn.execute(s, codice = cf)
 
             rs = conn.execute("FLUSH PRIVILEGES")
-            conn.execute("COMMIT")
-            conn.close() 
-            return redirect(url_for('area_riservata')) 
-        except:
-            conn.execute("ROLLBACK")
+            conn.execute("COMMIT") 
             conn.close()
-            flash("Errore durante la registrazione", 'error')
-            return redirect(url_for('registrazione'))
-    return render_template(
-        "registrazione.html",
-        is_logged = is_logged(),
-        title = 'Registrazione',
-        year = datetime.now().year,
-        form = form
+            return redirect(url_for('login'))
+        conn.close()
+        return render_template(
+            "registrazione.html",
+            is_logged = is_logged(),
+            title = 'Registrazione',
+            year = datetime.now().year,
+            form = form
         )
+    except:
+        conn.execute("ROLLBACK")
+        conn.close()
+        flash("Errore durante la registrazione", 'error')
+        return redirect(url_for('registrazione'))
+
 """
 La funzione serve ad inserire un nuovo utente di tipo istruttore.
 Si setta la transazione a livello serializable per avere a disposizione tutte le palestre, 
@@ -542,7 +549,7 @@ def area_gestore():
             )
         except:
             conn.close()
-            flash('Erroe durante la richiesta dei dati della palestra','error')
+            flash('Errore durante la richiesta dei dati della palestra','error')
             return redirect(url_for('home'))
     return redirect(url_for('home'))
     
@@ -709,10 +716,14 @@ def altri_corsi():
                 conn = engine.connect()
                 conn.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
                 conn.execute("START TRANSACTION")
-                s = text("INSERT INTO iscrizioni VALUES (:idcorso, :cf)")
+                s = text("INSERT INTO iscrizioni (idcorso, cf) VALUES (:idcorso, :cf)")
+                print(idcorso)
                 conn.execute(s, idcorso = idcorso, cf = current_user.get_id())
+                print('5')
                 conn.execute("COMMIT")
+                print('6')
                 conn.close()
+                print('7')
                 return redirect(url_for('altri_corsi'))
             except:
                 conn.execute("ROLLBACK")
